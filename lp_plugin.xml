@@ -1,0 +1,7 @@
+<library path="lib/libdwa_ext_local_planner">
+	<class name ="dwa_ext_local_planner/DWAExtPlannerROS" type ="dwa_ext_local_planner::DWAExtPlannerROS" base_class_type= "nav_core::BaseLocalPlanner">
+		<description>
+			Plugin for BaseLocalPlanner that implements a DWA local planner including a terrain traversability analysis.
+		</description>
+	</class>
+</library>

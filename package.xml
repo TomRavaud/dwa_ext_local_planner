@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package>
+  <name>dwa_ext_local_planner</name>
+  <version>0.0.1</version>
+  <description>
+    dwa_ext_local_planner implements a plugin to the base_local_planner   
+  </description>
+
+  <maintainer email="tom@todo.todo">Tom Ravaud</maintainer>
+  <author email="tom@todo.todo">Tom Ravaud</author>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>base_local_planner</build_depend>
+  <build_depend>cmake_modules</build_depend> 
+  <build_depend>costmap_2d</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_core</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <run_depend>base_local_planner</run_depend>
+  <run_depend>costmap_2d</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>nav_core</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>tf2_ros</run_depend>
+  <run_depend>std_msgs</run_depend>
+
+  <export>
+    <nav_core plugin="${prefix}/lp_plugin.xml"/>
+  </export>
+</package>

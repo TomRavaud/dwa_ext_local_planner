@@ -1,0 +1,4 @@
+<map id="dwa_ext_local_planner::DWAExtPlannerROS" name="dwa_ext_local_planner::DWAExtPlannerROS">
+<area shape="rect" id="node1" title="ROS Wrapper for the DWAExtPlanner that adheres to the BaseLocalPlanner interface and can be used as a..." alt="" coords="22,80,193,121"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,209,32"/>
+</map>
