@@ -4,13 +4,28 @@
 #include <pluginlib/class_list_macros.h>
 
 
+//TODO:
+#include <vector>
+#include <Eigen/Core>
+
+#include <base_local_planner/trajectory.h>
+#include <base_local_planner/local_planner_limits.h>
+#include <base_local_planner/local_planner_util.h>
+#include <base_local_planner/simple_trajectory_generator.h>
+
+#include <base_local_planner/oscillation_cost_function.h>
+#include <base_local_planner/map_grid_cost_function.h>
+#include <base_local_planner/obstacle_cost_function.h>
+#include <base_local_planner/twirling_cost_function.h>
+#include <base_local_planner/simple_scored_sampling_planner.h>
+
+
 // Register this planner as a BaseLocalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(dwa_ext_local_planner::DWAExtPlannerROS,
 					   nav_core::BaseLocalPlanner)
 
 namespace dwa_ext_local_planner
 {
-
 	DWAExtPlannerROS::DWAExtPlannerROS()
 		: costmap_ros_(NULL), tf_(NULL), initialized_(false) {}
 
@@ -24,6 +39,11 @@ namespace dwa_ext_local_planner
 
 	DWAExtPlannerROS::~DWAExtPlannerROS() {}
 
+	void DWAExtPlannerROS::callbackReconfigure(DWAExtPlannerConfig &config, uint32_t level)
+	{
+		ROS_INFO("Reconfiguration");
+	}
+
 	void DWAExtPlannerROS::initialize(std::string name, tf2_ros::Buffer *tf, costmap_2d::Costmap2DROS *costmap_ros)
 	{
 		begin = ros::Time::now(); 
@@ -31,6 +51,11 @@ namespace dwa_ext_local_planner
 		// Check if the plugin has been initialized
 		if (!initialized_)
 		{
+			// Allow us to create a private namespace within the move_base
+			// node's namespace to avoid conflicts with dynamic reconfigure
+			// servers' names
+			ros::NodeHandle private_nh("~/" + name);
+
 			// Copy address of costmap and Transform Listener
 			// (handed over from move_base)
 			costmap_ros_ = costmap_ros;
@@ -39,7 +64,18 @@ namespace dwa_ext_local_planner
 			// Set initialized flag
 			initialized_ = true;
 
-			ROS_DEBUG("Simple Local Planner plugin initialized.");
+			ROS_INFO("Local Planner plugin initialized.");
+			
+			// Define a dynamic reconfigure server
+			config_server_ = new dynamic_reconfigure::Server<DWAExtPlannerConfig>(private_nh);
+
+			// Define a callback function called each time the server gets a
+			// reconfiguration request
+      		dynamic_reconfigure::Server<DWAExtPlannerConfig>::CallbackType cb;
+			cb = boost::bind(
+				&dwa_ext_local_planner::DWAExtPlannerROS::callbackReconfigure,
+				this, _1, _2);
+  			config_server_->setCallback(cb);
 		}
 		else
 		{
@@ -67,10 +103,24 @@ namespace dwa_ext_local_planner
 			return false;
 		}
 
+		// base_local_planner::SimpleTrajectoryGenerator generator_;
+
+		// generator_.setParameters(
+        // 	config.sim_time,
+        // 	config.sim_granularity,
+        // 	config.angular_sim_granularity,
+        // 	config.use_dwa,
+        // 	sim_period_);
+
+		// std::vector<base_local_planner::TrajectorySampleGenerator*> generator_list;
+
+		// std::cout << generator_list[0] << std::endl;
+		// std::cout << generator_list << std::endl;
+
 		// Fill the velocity command message
-		cmd_vel.linear.x = 0.5;
-		cmd_vel.linear.y = 0;
-		cmd_vel.angular.z = 0;
+		// cmd_vel.linear.x = 0.5;
+		// cmd_vel.linear.y = 0;
+		// cmd_vel.angular.z = 0;
 
 		return true;
 	}

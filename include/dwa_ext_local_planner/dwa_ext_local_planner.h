@@ -14,6 +14,10 @@
 #include <tf2_ros/buffer.h>
 #include <costmap_2d/costmap_2d_ros.h>
 
+// Dynamic reconfigure
+#include <dynamic_reconfigure/server.h>
+#include <dwa_ext_local_planner/DWAExtPlannerConfig.h>
+
 
 namespace dwa_ext_local_planner{
   /**
@@ -44,6 +48,7 @@ namespace dwa_ext_local_planner{
 
       /**
        * @brief Constructs the ROS wrapper
+       * 
        * @param name The name to give this instance of the trajectory planner
        * @param tf A pointer to a transform listener
        * @param costmap_ros The cost map to use for assigning costs to
@@ -54,6 +59,7 @@ namespace dwa_ext_local_planner{
 
       /**
        * @brief Set the plan that the controller is following
+       * 
        * @param orig_global_plan The plan to pass to the controller
        * @return True if the plan was updated successfully, false otherwise
        */
@@ -62,6 +68,7 @@ namespace dwa_ext_local_planner{
       /**
        * @brief Given the current position, orientation, and velocity of the robot,
        * compute velocity commands to send to the base
+       * 
        * @param cmd_vel Will be filled with the velocity command to be passed to the robot base
        * @return True if a valid trajectory was found, false otherwise
        */
@@ -69,11 +76,21 @@ namespace dwa_ext_local_planner{
 
       /**
        * @brief Check if the goal pose has been achieved
+       * 
        * @return True if achieved, false otherwise
        */
       bool isGoalReached();
 
     private:
+      /**
+       * @brief Callback function called each time the dynamic_reconfigure
+       * server is sent a new configuration
+       * 
+       * @param config The new configuration
+       * @param level A bit mask
+       */
+      void callbackReconfigure(DWAExtPlannerConfig &config, uint32_t level);
+
       // Local cost map attribute
       costmap_2d::Costmap2DROS* costmap_ros_;
 
@@ -82,6 +99,9 @@ namespace dwa_ext_local_planner{
 
       // To know if the local planner has been initialized or not
       bool initialized_;
+
+      // Pointer to the dynamic reconfigure server
+      dynamic_reconfigure::Server<DWAExtPlannerConfig> *config_server_;
 
       ros::Time begin; 
   };

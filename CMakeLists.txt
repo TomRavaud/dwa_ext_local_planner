@@ -9,18 +9,29 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   geometry_msgs
+  dynamic_reconfigure
 )
 
-catkin_package()
+find_package(Eigen3 REQUIRED)  #TODO:
+remove_definitions(-DDISABLE_LIBUSB-1.0)  #TODO:
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
   include
-  ${Eigen_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}  #TODO:
   ${catkin_INCLUDE_DIRS}
 )
+
+add_definitions(${EIGEN3_DEFINITIONS})  #TODO:
+
+# Dynamic reconfigure
+generate_dynamic_reconfigure_options(
+    cfg/DWAExtPlanner.cfg
+)
+
+catkin_package()
 
 ## Declare a C++ library
 add_library(dwa_ext_local_planner
