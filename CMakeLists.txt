@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   dynamic_reconfigure
+  base_local_planner
 )
 
 find_package(Eigen3 REQUIRED)  #TODO:
@@ -31,14 +32,38 @@ generate_dynamic_reconfigure_options(
     cfg/DWAExtPlanner.cfg
 )
 
-catkin_package()
+catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES dwa_ext_local_planner
+    CATKIN_DEPENDS
+        base_local_planner
+        dynamic_reconfigure
+        nav_msgs
+        pluginlib
+        sensor_msgs
+        roscpp
+        tf2
+        tf2_ros
+)
 
 ## Declare a C++ library
 add_library(dwa_ext_local_planner
-  src/dwa_ext_local_planner.cpp
+  src/dwa_ext_local_planner.cpp src/traversability_cost_function.cpp
 )
+
+# add_dependencies(dwa_ext_local_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(dwa_ext_local_planner
    ${catkin_LIBRARIES}
 )
+
+# install(TARGETS dwa_ext_local_planner
+#        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+#        )
+
+# install(FILES lp_plugin.xml
+#     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )

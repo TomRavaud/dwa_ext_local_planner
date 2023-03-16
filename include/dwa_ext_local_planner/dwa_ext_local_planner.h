@@ -13,10 +13,32 @@
 #include <geometry_msgs/Twist.h>
 #include <tf2_ros/buffer.h>
 #include <costmap_2d/costmap_2d_ros.h>
+#include <tf2/utils.h>
 
 // Dynamic reconfigure
 #include <dynamic_reconfigure/server.h>
 #include <dwa_ext_local_planner/DWAExtPlannerConfig.h>
+
+
+//TODO:
+#include <vector>
+#include <Eigen/Core>
+
+#include <base_local_planner/trajectory.h>
+#include <base_local_planner/local_planner_limits.h>
+#include <base_local_planner/local_planner_util.h>
+#include <base_local_planner/simple_trajectory_generator.h>
+
+#include <base_local_planner/oscillation_cost_function.h>
+#include <base_local_planner/map_grid_cost_function.h>
+#include <base_local_planner/obstacle_cost_function.h>
+#include <base_local_planner/twirling_cost_function.h>
+#include <base_local_planner/simple_scored_sampling_planner.h>
+
+// Custom cost function to assess the terrain traversability
+#include "dwa_ext_local_planner/traversability_cost_function.h"
+
+#include <base_local_planner/odometry_helper_ros.h>
 
 
 namespace dwa_ext_local_planner{
@@ -103,7 +125,31 @@ namespace dwa_ext_local_planner{
       // Pointer to the dynamic reconfigure server
       dynamic_reconfigure::Server<DWAExtPlannerConfig> *config_server_;
 
-      ros::Time begin; 
+      // Define a variable to store the local planner parameters
+      dwa_ext_local_planner::DWAExtPlannerConfig config_;
+
+      // Define a trajectory generator
+		  base_local_planner::SimpleTrajectoryGenerator generator_;
+
+      // Define the traversability cost function
+      dwa_ext_local_planner::TraversabilityCostFunction traversability_costs_;
+
+      // Define the scored sampling planner that will be used to associate the trajectories to costs
+      base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
+
+      // Define a variable to store the best trajectory
+      base_local_planner::Trajectory result_traj_;
+
+      // base_local_planner::LocalPlannerUtil planner_util_;
+
+      // Define a variable to store the current pose of the robot
+      geometry_msgs::PoseStamped current_pose_;
+
+      // Define variables to help us to read the odometry topic
+      base_local_planner::OdometryHelperRos odom_helper_;
+      std::string odom_topic_;
+
+      ros::Time begin;
   };
 };
 
