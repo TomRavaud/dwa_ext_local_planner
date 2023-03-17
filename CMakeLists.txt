@@ -11,7 +11,11 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   dynamic_reconfigure
   base_local_planner
+  cv_bridge
+  sensor_msgs
 )
+
+find_package(OpenCV REQUIRED)
 
 find_package(Eigen3 REQUIRED)  #TODO:
 remove_definitions(-DDISABLE_LIBUSB-1.0)  #TODO:
@@ -56,6 +60,7 @@ add_library(dwa_ext_local_planner
 ## Specify libraries to link a library or executable target against
 target_link_libraries(dwa_ext_local_planner
    ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
 )
 
 # install(TARGETS dwa_ext_local_planner

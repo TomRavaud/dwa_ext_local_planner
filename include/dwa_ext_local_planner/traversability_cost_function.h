@@ -2,7 +2,19 @@
 #define TRAVERSABILITY_COST_FUNCTION_H_
 
 #include <base_local_planner/trajectory_cost_function.h>
+#include <ros/ros.h>
 // #include <Eigen/Core>
+
+// To work with different image transports
+#include <image_transport/image_transport.h>
+// OpenCV
+#include <opencv2/opencv.hpp>
+// To convert ROS Images into OpenCV images
+#include <cv_bridge/cv_bridge.h>
+
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/Imu.h>
+
 
 namespace dwa_ext_local_planner {
     /**
@@ -42,6 +54,12 @@ namespace dwa_ext_local_planner {
              * @return double The score of the trajectory
              */
             virtual double scoreTrajectory(base_local_planner::Trajectory &traj);
+
+        private:
+            // Define a subscriber to the image topic
+            ros::Subscriber sub_image_;
+
+            void callbackImage(const sensor_msgs::ImageConstPtr& image);
     };
 }
 
