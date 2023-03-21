@@ -149,6 +149,8 @@ namespace dwa_ext_local_planner{
       base_local_planner::OdometryHelperRos odom_helper_;
       std::string odom_topic_;
 
+      double sim_period_;
+
       ros::Time begin;
   };
 };

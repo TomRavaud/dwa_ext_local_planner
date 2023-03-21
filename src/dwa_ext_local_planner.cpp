@@ -46,10 +46,29 @@ namespace dwa_ext_local_planner
 			costmap_ros_ = costmap_ros;
 			tf_ = tf;
 
-			// Set initialized flag
-			initialized_ = true;
+			// Assuming this planner is being run within the navigation stack, we can
+    		// just do an upward search for the frequency at which its being run. This
+    		// also allows the frequency to be overwritten locally.
+    		std::string controller_frequency_param_name;
+    		if(!private_nh.searchParam("controller_frequency", controller_frequency_param_name)) {
+    		  sim_period_ = 0.05;
+    		} else {
+    		  double controller_frequency = 0;
+    		  private_nh.param(controller_frequency_param_name, controller_frequency, 20.0);
+    		  if(controller_frequency > 0) {
+    		    sim_period_ = 1.0 / controller_frequency;
+    		  } else {
+    		    ROS_WARN("A controller_frequency less than 0 has been set. Ignoring the parameter, assuming a rate of 20Hz");
+    		    sim_period_ = 0.05;
+    		  }
+    		}
+    		ROS_INFO("Sim period is set to %.2f", sim_period_);
 
-			ROS_INFO("Local Planner plugin initialized.");
+			// Allow to read the odometry topic
+			if(private_nh.getParam("odom_topic", odom_topic_))
+      		{
+      		  odom_helper_.setOdomTopic(odom_topic_);
+      		}
 			
 			// Define a dynamic reconfigure server
 			config_server_ = new dynamic_reconfigure::Server<DWAExtPlannerConfig>(private_nh);
@@ -62,11 +81,10 @@ namespace dwa_ext_local_planner
 				this, _1, _2);
   			config_server_->setCallback(callback_reconfigure);
 
-			// Allow to read the odometry topic
-			if(private_nh.getParam("odom_topic", odom_topic_))
-      		{
-      		  odom_helper_.setOdomTopic(odom_topic_);
-      		}
+			// Set initialized flag
+			initialized_ = true;
+
+			ROS_INFO("Local Planner plugin initialized.");
 		}
 		else
 		{
@@ -94,15 +112,13 @@ namespace dwa_ext_local_planner
 			return false;
 		}
 
-		double sim_period = 0.5;
-
 		// Set the parameters of the trajectory generator
 		generator_.setParameters(
         	config_.sim_time,
         	config_.sim_granularity,
         	config_.angular_sim_granularity,
         	config_.use_dwa,
-        	sim_period);
+        	sim_period_);
 		
 		// Number of trajectories to sample
 		Eigen::Vector3f vsamples(config_.vx_samples, config_.vy_samples, config_.vth_samples);
@@ -156,7 +172,6 @@ namespace dwa_ext_local_planner
 		// std::cout << generator_.nextTrajectory(traj) << std::endl;
 		// if (generator_.nextTrajectory(traj))
 		// {	
-		// 	std::cout << "It works" << std::endl;
 		// 	std::cout << traj.getPointsSize() << std::endl;
 		// }
 
@@ -180,12 +195,12 @@ namespace dwa_ext_local_planner
     	scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
 		// Print the cost associated with the best trajectory
-		std::cout << result_traj_.cost_ << std::endl;
+		// std::cout << result_traj_.cost_ << std::endl;
 
 		// Fill the velocity command message
-		cmd_vel.linear.x = result_traj_.xv_;
-		cmd_vel.linear.y = result_traj_.yv_;
-		cmd_vel.angular.z = result_traj_.thetav_;
+		// cmd_vel.linear.x = result_traj_.xv_;
+		// cmd_vel.linear.y = result_traj_.yv_;
+		// cmd_vel.angular.z = result_traj_.thetav_;
 
 		return true;
 	}

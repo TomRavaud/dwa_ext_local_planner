@@ -172,13 +172,15 @@ $(function() {
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;      base_local_planner::OdometryHelperRos odom_helper_;</div>
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;      std::string odom_topic_;</div>
 <div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160; </div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;      ros::Time begin;</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  };</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;};</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160; </div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;      <span class="keywordtype">double</span> sim_period_;</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160; </div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;      ros::Time begin;</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  };</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;};</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160; </div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a></div><div class="ttdoc">Uses camera images to extract the robot footprint and assign a cost to trajectories depending on the ...</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.h:14</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a></div><div class="ttdoc">Uses camera images to extract the robot footprint and assign a cost to trajectories depending on the ...</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.h:35</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_a3452a0dd068d90befca8dd8acc0fd4c3"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3">dwa_ext_local_planner::DWAExtPlannerROS::isGoalReached</a></div><div class="ttdeci">bool isGoalReached()</div><div class="ttdoc">Check if the goal pose has been achieved.</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_ad36b0e857072bd09873656e6a3932c91"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#ad36b0e857072bd09873656e6a3932c91">dwa_ext_local_planner::DWAExtPlannerROS::DWAExtPlannerROS</a></div><div class="ttdeci">DWAExtPlannerROS()</div><div class="ttdoc">Constructor for DWAExtPlannerROS wrapper.</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_aed5643ceeffba289a71ec15ff4428647"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#aed5643ceeffba289a71ec15ff4428647">dwa_ext_local_planner::DWAExtPlannerROS::computeVelocityCommands</a></div><div class="ttdeci">bool computeVelocityCommands(geometry_msgs::Twist &amp;cmd_vel)</div><div class="ttdoc">Given the current position, orientation, and velocity of the robot, compute velocity commands to send...</div></div>

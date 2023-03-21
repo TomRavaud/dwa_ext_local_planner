@@ -15,6 +15,15 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
 
+#include <Eigen/Geometry>
+#include <Eigen/Dense>
+
+#include <time.h>
+#include <cstdlib>
+
+#include <torch/torch.h>
+#include <torch/script.h>
+
 
 namespace dwa_ext_local_planner {
     /**
@@ -56,10 +65,40 @@ namespace dwa_ext_local_planner {
             virtual double scoreTrajectory(base_local_planner::Trajectory &traj);
 
         private:
+            void callbackImage(const sensor_msgs::ImageConstPtr& image);
+
+            // To convert ROS Image type into a CvImage
+    	    cv_bridge::CvImagePtr cv_ptr_;
+
             // Define a subscriber to the image topic
             ros::Subscriber sub_image_;
 
-            void callbackImage(const sensor_msgs::ImageConstPtr& image);
+            // Width of the robot
+            double L_ = 0.67;
+
+            const double IMAGE_W_ = 1280, IMAGE_H_ = 720;
+
+
+            // Set the tilt angle of the camera
+            float alpha_ = -0.197;
+
+            // Define homogeneous transformation matrices
+            cv::Mat_<double> robot_to_cam_translation_, cam_to_robot_translation_, world_to_robot_translation_, robot_to_world_translation_;
+            cv::Mat_<double> robot_to_cam_rotation_, cam_to_robot_rotation_, world_to_robot_rotation_, robot_to_world_rotation_;
+
+            cv::Mat_<double> cam_to_world_translation_, cam_to_world_rotation_;
+            
+            // Define an internal calibration matrix
+            cv::Mat_<double> K_;
+
+            // Device to run the model on
+            torch::Device device_;
+
+            // Model
+            torch::jit::script::Module model_;
+
+            // Define a transform to normalize the image
+            torch::data::transforms::Normalize<> normalize_transform_ = torch::data::transforms::Normalize<>({0.3426, 0.3569, 0.2914}, {0.1363, 0.1248, 0.1302});
     };
 }
 

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(dwa_ext_local_planner)
 
+# Add the path to the pytorch library
+list(APPEND CMAKE_PREFIX_PATH "/home/tom/Traversability-Tom/libtorch")
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -16,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(OpenCV REQUIRED)
+
+find_package(Torch REQUIRED)
 
 find_package(Eigen3 REQUIRED)  #TODO:
 remove_definitions(-DDISABLE_LIBUSB-1.0)  #TODO:
@@ -61,6 +66,7 @@ add_library(dwa_ext_local_planner
 target_link_libraries(dwa_ext_local_planner
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
+   ${TORCH_LIBRARIES}
 )
 
 # install(TARGETS dwa_ext_local_planner
