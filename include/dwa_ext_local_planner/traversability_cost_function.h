@@ -24,6 +24,8 @@
 #include <torch/torch.h>
 #include <torch/script.h>
 
+#include <chrono>
+
 
 namespace dwa_ext_local_planner {
     /**
@@ -64,6 +66,13 @@ namespace dwa_ext_local_planner {
              */
             virtual double scoreTrajectory(base_local_planner::Trajectory &traj);
 
+            /**
+             * @brief Display the costs of the trajectories
+             * 
+             * @param trajs The sampled trajectories
+             */
+            void displayCosts(std::vector<base_local_planner::Trajectory> &trajs);
+
         private:
             void callbackImage(const sensor_msgs::ImageConstPtr& image);
 
@@ -76,8 +85,8 @@ namespace dwa_ext_local_planner {
             // Width of the robot
             double L_ = 0.67;
 
+            // Image width and height
             const double IMAGE_W_ = 1280, IMAGE_H_ = 720;
-
 
             // Set the tilt angle of the camera
             float alpha_ = -0.197;
@@ -94,11 +103,14 @@ namespace dwa_ext_local_planner {
             // Device to run the model on
             torch::Device device_;
 
-            // Model
+            // NN model
             torch::jit::script::Module model_;
 
             // Define a transform to normalize the image
             torch::data::transforms::Normalize<> normalize_transform_ = torch::data::transforms::Normalize<>({0.3426, 0.3569, 0.2914}, {0.1363, 0.1248, 0.1302});
+
+            // Define the bins midpoints
+            at::Tensor bins_midpoints_ = torch::tensor({{0.43156512}, {0.98983318}, {1.19973744}, {1.35943443}, {1.51740755}, {1.67225206}, {1.80821536}, {1.94262708}, {2.12798895}, {2.6080252}}, torch::kFloat);
     };
 }
 

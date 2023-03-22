@@ -19,8 +19,6 @@
 #include <dynamic_reconfigure/server.h>
 #include <dwa_ext_local_planner/DWAExtPlannerConfig.h>
 
-
-//TODO:
 #include <vector>
 #include <Eigen/Core>
 
@@ -143,13 +141,16 @@ namespace dwa_ext_local_planner{
       // base_local_planner::LocalPlannerUtil planner_util_;
 
       // Define a variable to store the current pose of the robot
-      geometry_msgs::PoseStamped current_pose_;
+      // geometry_msgs::PoseStamped current_pose_;
 
       // Define variables to help us to read the odometry topic
       base_local_planner::OdometryHelperRos odom_helper_;
-      std::string odom_topic_;
+      std::string odom_topic_ = "odometry/filtered";
 
       double sim_period_;
+
+      // Define a variable to store the local planner limits
+		  base_local_planner::LocalPlannerLimits limits_;
 
       ros::Time begin;
   };

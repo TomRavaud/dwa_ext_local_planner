@@ -25,7 +25,36 @@ namespace dwa_ext_local_planner
 
 	void DWAExtPlannerROS::callbackReconfigure(DWAExtPlannerConfig &config, uint32_t level)
 	{	
+		// Set the parameters of the trajectory generator
+		generator_.setParameters(
+        	config.sim_time,
+        	config.sim_granularity,
+        	config.angular_sim_granularity,
+        	config.use_dwa,
+        	sim_period_);
+		
+		// Set the parameters of the trajectory generator
+      	limits_.max_vel_trans = config.max_vel_trans;
+      	limits_.min_vel_trans = config.min_vel_trans;
+      	limits_.max_vel_x = config.max_vel_x;
+      	limits_.min_vel_x = config.min_vel_x;
+      	limits_.max_vel_y = config.max_vel_y;
+      	limits_.min_vel_y = config.min_vel_y;
+      	limits_.max_vel_theta = config.max_vel_theta;
+      	limits_.min_vel_theta = config.min_vel_theta;
+      	limits_.acc_lim_x = config.acc_lim_x;
+      	limits_.acc_lim_y = config.acc_lim_y;
+      	limits_.acc_lim_theta = config.acc_lim_theta;
+      	limits_.acc_lim_trans = config.acc_lim_trans;
+      	limits_.xy_goal_tolerance = config.xy_goal_tolerance;
+      	limits_.yaw_goal_tolerance = config.yaw_goal_tolerance;
+      	limits_.prune_plan = config.prune_plan;
+      	limits_.trans_stopped_vel = config.trans_stopped_vel;
+      	limits_.theta_stopped_vel = config.theta_stopped_vel;
+
+		// Store the new configuration
 		config_ = config;
+
 		ROS_INFO("Reconfiguration");
 	}
 
@@ -65,10 +94,7 @@ namespace dwa_ext_local_planner
     		ROS_INFO("Sim period is set to %.2f", sim_period_);
 
 			// Allow to read the odometry topic
-			if(private_nh.getParam("odom_topic", odom_topic_))
-      		{
-      		  odom_helper_.setOdomTopic(odom_topic_);
-      		}
+			odom_helper_.setOdomTopic(odom_topic_);
 			
 			// Define a dynamic reconfigure server
 			config_server_ = new dynamic_reconfigure::Server<DWAExtPlannerConfig>(private_nh);
@@ -112,68 +138,36 @@ namespace dwa_ext_local_planner
 			return false;
 		}
 
-		// Set the parameters of the trajectory generator
-		generator_.setParameters(
-        	config_.sim_time,
-        	config_.sim_granularity,
-        	config_.angular_sim_granularity,
-        	config_.use_dwa,
-        	sim_period_);
+		// Get the current time
+		auto time_start = std::chrono::high_resolution_clock::now();	
 		
 		// Number of trajectories to sample
 		Eigen::Vector3f vsamples(config_.vx_samples, config_.vy_samples, config_.vth_samples);
-		// Eigen::Vector3f vsamples(10, 1, 10);
 
 		// Get the robot pose in the map
-		costmap_ros_->getRobotPose(current_pose_);
-		// std::cout << current_pose_.pose.position.x << std::endl;
+		// costmap_ros_->getRobotPose(current_pose_);
+
+		// Read the current odometry message on the odometry topic
+		nav_msgs::Odometry odom;
+		odom_helper_.getOdom(odom);
 
 		// Read the current velocity of the robot on the odometry topic
-		geometry_msgs::PoseStamped robot_vel;
-    	odom_helper_.getRobotVel(robot_vel);
-		// std::cout << robot_vel.pose.position.x << std::endl;
+		// geometry_msgs::PoseStamped robot_vel;
+    	// odom_helper_.getRobotVel(robot_vel);
 
-		// std::vector<geometry_msgs::PoseStamped> local_plan;
-		// planner_util_.getLocalPlan(current_pose_, local_plan);
-
-		// Set the pos, vel, goal, and limits variables
-		Eigen::Vector3f pos(current_pose_.pose.position.x, current_pose_.pose.position.y, tf2::getYaw(current_pose_.pose.orientation));
-		// Eigen::Vector3f pos(0.5, 0.4, 0.3);  // set the initial position to (0, 0, 0)
-    	Eigen::Vector3f vel(robot_vel.pose.position.x, robot_vel.pose.position.y, tf2::getYaw(robot_vel.pose.orientation));
-		// Eigen::Vector3f vel(0, 0, 0);  // set the initial velocity to zero
-
-    	// geometry_msgs::PoseStamped goal_pose = local_plan.back();
-    	// Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf2::getYaw(goal_pose.pose.orientation));
-		Eigen::Vector3f goal(4.0, 3.0, 5.0);  // set the goal position to (1, 1, 0)
-
-		base_local_planner::LocalPlannerLimits limits;
-      	limits.max_vel_trans = config_.max_vel_trans;
-      	limits.min_vel_trans = config_.min_vel_trans;
-      	limits.max_vel_x = config_.max_vel_x;
-      	limits.min_vel_x = config_.min_vel_x;
-      	limits.max_vel_y = config_.max_vel_y;
-      	limits.min_vel_y = config_.min_vel_y;
-      	limits.max_vel_theta = config_.max_vel_theta;
-      	limits.min_vel_theta = config_.min_vel_theta;
-      	limits.acc_lim_x = config_.acc_lim_x;
-      	limits.acc_lim_y = config_.acc_lim_y;
-      	limits.acc_lim_theta = config_.acc_lim_theta;
-      	limits.acc_lim_trans = config_.acc_lim_trans;
-      	limits.xy_goal_tolerance = config_.xy_goal_tolerance;
-      	limits.yaw_goal_tolerance = config_.yaw_goal_tolerance;
-      	limits.prune_plan = config_.prune_plan;
-      	limits.trans_stopped_vel = config_.trans_stopped_vel;
-      	limits.theta_stopped_vel = config_.theta_stopped_vel;
+		// Set the current position of the robot
+		Eigen::Vector3f pos(odom.pose.pose.position.x, odom.pose.pose.position.y, tf2::getYaw(odom.pose.pose.orientation));
+		// Eigen::Vector3f pos(current_pose_.pose.position.x, current_pose_.pose.position.y, tf2::getYaw(current_pose_.pose.orientation));
+		
+		// Set the current velocity of the robot
+    	Eigen::Vector3f vel(odom.twist.twist.linear.x, odom.twist.twist.linear.y, odom.twist.twist.angular.z);
+    	// Eigen::Vector3f vel(robot_vel.pose.position.x, robot_vel.pose.position.y, tf2::getYaw(robot_vel.pose.orientation));
+		
+		// Set a random goal position
+		Eigen::Vector3f goal(4.0, 3.0, 5.0);
 
 		// Initialize the trajectory generator given the current state of the robot
-		generator_.initialise(pos, vel, goal, &limits, vsamples, false);
-
-		// base_local_planner::Trajectory traj;
-		// std::cout << generator_.nextTrajectory(traj) << std::endl;
-		// if (generator_.nextTrajectory(traj))
-		// {	
-		// 	std::cout << traj.getPointsSize() << std::endl;
-		// }
+		generator_.initialise(pos, vel, goal, &limits_, vsamples, false);
 
 		// Create a vector to store all the different cost functions
     	std::vector<base_local_planner::TrajectoryCostFunction*> critics;
@@ -194,13 +188,25 @@ namespace dwa_ext_local_planner
     	std::vector<base_local_planner::Trajectory> all_explored;
     	scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
+		std::cout << "Number of trajectories sampled: " << all_explored.size() << std::endl;
+
+		traversability_costs_.displayCosts(all_explored);
+
 		// Print the cost associated with the best trajectory
-		// std::cout << result_traj_.cost_ << std::endl;
+		// std::cout << result_traj_.xv_ << std::endl;
 
 		// Fill the velocity command message
-		// cmd_vel.linear.x = result_traj_.xv_;
-		// cmd_vel.linear.y = result_traj_.yv_;
-		// cmd_vel.angular.z = result_traj_.thetav_;
+		cmd_vel.linear.x = result_traj_.xv_;
+		cmd_vel.linear.y = result_traj_.yv_;
+		cmd_vel.angular.z = result_traj_.thetav_;
+
+		// Get the current time
+		auto time_stop = std::chrono::high_resolution_clock::now();
+
+		// Calculate and display the time taken by the planner
+		std::chrono::duration<double, std::milli> time_taken = time_stop - time_start;
+		std::cout << "Time taken: " << time_taken.count()*0.001 << " second(s)" << std::endl;
+		std::cout << "Frequency: " << 1/(time_taken.count()*0.001) << " Hz\n" << std::endl;
 
 		return true;
 	}
