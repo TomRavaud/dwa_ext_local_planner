@@ -71,9 +71,14 @@ namespace dwa_ext_local_planner {
              * 
              * @param trajs The sampled trajectories
              */
-            void displayCosts(std::vector<base_local_planner::Trajectory> &trajs);
+            void displayTrajectoriesAndCosts(std::vector<base_local_planner::Trajectory> &trajs);
 
         private:
+            /**
+             * @brief Callback function to get the camera image
+             * 
+             * @param image ROS Image message
+             */
             void callbackImage(const sensor_msgs::ImageConstPtr& image);
 
             // To convert ROS Image type into a CvImage

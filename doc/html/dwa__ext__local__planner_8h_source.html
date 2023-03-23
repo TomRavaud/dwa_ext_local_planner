@@ -109,77 +109,79 @@ $(function() {
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#include &lt;base_local_planner/odometry_helper_ros.h&gt;</span></div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">namespace </span>dwa_ext_local_planner{</div>
-<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html">   49</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html">DWAExtPlannerROS</a> : <span class="keyword">public</span> nav_core::BaseLocalPlanner{</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment">// #include &lt;dwa_ext_local_planner/simple_trajectory_generator.h&gt;</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">namespace </span>dwa_ext_local_planner{</div>
+<div class="line"><a name="l00051"></a><span class="lineno"><a class="line" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html">   51</a></span>&#160;  <span class="keyword">class </span><a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html">DWAExtPlannerROS</a> : <span class="keyword">public</span> nav_core::BaseLocalPlanner{</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#ad36b0e857072bd09873656e6a3932c91">DWAExtPlannerROS</a>();</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#ad36b0e857072bd09873656e6a3932c91">DWAExtPlannerROS</a>(std::string name, tf2_ros::Buffer* tf,</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;                       costmap_2d::Costmap2DROS* costmap_ros);</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a2e824497626211ed7708ceaa1ec4b44d">~DWAExtPlannerROS</a>();</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;      <span class="keywordtype">void</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a60aae31088640ececae59829e5bce7b8">initialize</a>(std::string name, tf2_ros::Buffer* tf,</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;                      costmap_2d::Costmap2DROS* costmap_ros);</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a4a2f91d411c498a21c1b489cbb1952e1">setPlan</a>(<span class="keyword">const</span> std::vector&lt;geometry_msgs::PoseStamped&gt;&amp; orig_global_plan);</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#aed5643ceeffba289a71ec15ff4428647">computeVelocityCommands</a>(geometry_msgs::Twist&amp; cmd_vel);</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3">isGoalReached</a>();</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;      <span class="keywordtype">void</span> callbackReconfigure(DWAExtPlannerConfig &amp;config, uint32_t level);</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;      <span class="comment">// Local cost map attribute</span></div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;      costmap_2d::Costmap2DROS* costmap_ros_;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;      <span class="comment">// Pointer to the transform listener</span></div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;      tf2_ros::Buffer* tf_;</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;      <span class="comment">// To know if the local planner has been initialized or not</span></div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;      <span class="keywordtype">bool</span> initialized_;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;      <span class="comment">// Pointer to the dynamic reconfigure server</span></div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;      dynamic_reconfigure::Server&lt;DWAExtPlannerConfig&gt; *config_server_;</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; </div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;      <span class="comment">// Define a variable to store the local planner parameters</span></div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;      dwa_ext_local_planner::DWAExtPlannerConfig config_;</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;      <span class="comment">// Define a trajectory generator</span></div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;          base_local_planner::SimpleTrajectoryGenerator generator_;</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160; </div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;      <span class="comment">// Define the traversability cost function</span></div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a> traversability_costs_;</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160; </div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;      <span class="comment">// Define the scored sampling planner that will be used to associate the trajectories to costs</span></div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;      base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;</div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160; </div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;      <span class="comment">// Define a variable to store the best trajectory</span></div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;      base_local_planner::Trajectory result_traj_;</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;      <span class="comment">// base_local_planner::LocalPlannerUtil planner_util_;</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#ad36b0e857072bd09873656e6a3932c91">DWAExtPlannerROS</a>();</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#ad36b0e857072bd09873656e6a3932c91">DWAExtPlannerROS</a>(std::string name, tf2_ros::Buffer* tf,</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;                       costmap_2d::Costmap2DROS* costmap_ros);</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a2e824497626211ed7708ceaa1ec4b44d">~DWAExtPlannerROS</a>();</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;      <span class="keywordtype">void</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a60aae31088640ececae59829e5bce7b8">initialize</a>(std::string name, tf2_ros::Buffer* tf,</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;                      costmap_2d::Costmap2DROS* costmap_ros);</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a4a2f91d411c498a21c1b489cbb1952e1">setPlan</a>(<span class="keyword">const</span> std::vector&lt;geometry_msgs::PoseStamped&gt;&amp; orig_global_plan);</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#aed5643ceeffba289a71ec15ff4428647">computeVelocityCommands</a>(geometry_msgs::Twist&amp; cmd_vel);</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3">isGoalReached</a>();</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160; </div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;      <span class="keywordtype">void</span> callbackReconfigure(DWAExtPlannerConfig &amp;config, uint32_t level);</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;      <span class="comment">// Local cost map attribute</span></div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;      costmap_2d::Costmap2DROS* costmap_ros_;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160; </div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;      <span class="comment">// Pointer to the transform listener</span></div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;      tf2_ros::Buffer* tf_;</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;      <span class="comment">// To know if the local planner has been initialized or not</span></div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;      <span class="keywordtype">bool</span> initialized_;</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;      <span class="comment">// Pointer to the dynamic reconfigure server</span></div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;      dynamic_reconfigure::Server&lt;DWAExtPlannerConfig&gt; *config_server_;</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160; </div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;      <span class="comment">// Define a variable to store the local planner parameters</span></div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;      dwa_ext_local_planner::DWAExtPlannerConfig config_;</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160; </div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;      <span class="comment">// Define a trajectory generator</span></div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;      base_local_planner::SimpleTrajectoryGenerator generator_;</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160; </div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;      <span class="comment">// Define the traversability cost function</span></div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a> traversability_costs_;</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160; </div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;      <span class="comment">// Define the scored sampling planner that will be used to associate the trajectories to costs</span></div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;      base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160; </div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;      <span class="comment">// Define a variable to store the best trajectory</span></div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;      base_local_planner::Trajectory result_traj_;</div>
 <div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160; </div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;      <span class="comment">// Define a variable to store the current pose of the robot</span></div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;      <span class="comment">// geometry_msgs::PoseStamped current_pose_;</span></div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160; </div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;      <span class="comment">// Define variables to help us to read the odometry topic</span></div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;      base_local_planner::OdometryHelperRos odom_helper_;</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;      std::string odom_topic_ = <span class="stringliteral">&quot;odometry/filtered&quot;</span>;</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160; </div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;      <span class="keywordtype">double</span> sim_period_;</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;      <span class="comment">// base_local_planner::LocalPlannerUtil planner_util_;</span></div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160; </div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;      <span class="comment">// Define a variable to store the current pose of the robot</span></div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;      <span class="comment">// geometry_msgs::PoseStamped current_pose_;</span></div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160; </div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;      <span class="comment">// Define variables to help us to read the odometry topic</span></div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;      base_local_planner::OdometryHelperRos odom_helper_;</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;      std::string odom_topic_ = <span class="stringliteral">&quot;odometry/filtered&quot;</span>;</div>
 <div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160; </div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;      <span class="comment">// Define a variable to store the local planner limits</span></div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;          base_local_planner::LocalPlannerLimits limits_;</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;      ros::Time begin;</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;  };</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;};</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160; </div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;      <span class="keywordtype">double</span> sim_period_;</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160; </div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;      <span class="comment">// Define a variable to store the local planner limits</span></div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;          base_local_planner::LocalPlannerLimits limits_;</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160; </div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;      ros::Time begin;</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;  };</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;};</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160; </div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a></div><div class="ttdoc">Uses camera images to extract the robot footprint and assign a cost to trajectories depending on the ...</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.h:37</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_a3452a0dd068d90befca8dd8acc0fd4c3"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3">dwa_ext_local_planner::DWAExtPlannerROS::isGoalReached</a></div><div class="ttdeci">bool isGoalReached()</div><div class="ttdoc">Check if the goal pose has been achieved.</div></div>
@@ -188,7 +190,7 @@ $(function() {
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_a4a2f91d411c498a21c1b489cbb1952e1"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a4a2f91d411c498a21c1b489cbb1952e1">dwa_ext_local_planner::DWAExtPlannerROS::setPlan</a></div><div class="ttdeci">bool setPlan(const std::vector&lt; geometry_msgs::PoseStamped &gt; &amp;orig_global_plan)</div><div class="ttdoc">Set the plan that the controller is following.</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_a2e824497626211ed7708ceaa1ec4b44d"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a2e824497626211ed7708ceaa1ec4b44d">dwa_ext_local_planner::DWAExtPlannerROS::~DWAExtPlannerROS</a></div><div class="ttdeci">~DWAExtPlannerROS()</div><div class="ttdoc">Destructor for the wrapper.</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_a60aae31088640ececae59829e5bce7b8"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a60aae31088640ececae59829e5bce7b8">dwa_ext_local_planner::DWAExtPlannerROS::initialize</a></div><div class="ttdeci">void initialize(std::string name, tf2_ros::Buffer *tf, costmap_2d::Costmap2DROS *costmap_ros)</div><div class="ttdoc">Constructs the ROS wrapper.</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html">dwa_ext_local_planner::DWAExtPlannerROS</a></div><div class="ttdoc">ROS Wrapper for the DWAExtPlanner that adheres to the BaseLocalPlanner interface and can be used as a...</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.h:49</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html">dwa_ext_local_planner::DWAExtPlannerROS</a></div><div class="ttdoc">ROS Wrapper for the DWAExtPlanner that adheres to the BaseLocalPlanner interface and can be used as a...</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.h:51</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

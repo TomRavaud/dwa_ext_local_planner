@@ -111,57 +111,55 @@ $(function() {
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;            <span class="keyword">virtual</span> <span class="keywordtype">double</span> <a class="code" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#aeb19d6124d795f6f5e26eddd0cf48755">scoreTrajectory</a>(base_local_planner::Trajectory &amp;traj);</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;            <span class="keywordtype">void</span> <a class="code" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a9aa8584373db51f7a7836711be3b15fc">displayCosts</a>(std::vector&lt;base_local_planner::Trajectory&gt; &amp;trajs);</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;            <span class="keywordtype">void</span> <a class="code" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a1e20052e2adc2620c98bb9a9bc67c430">displayTrajectoriesAndCosts</a>(std::vector&lt;base_local_planner::Trajectory&gt; &amp;trajs);</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;            <span class="keywordtype">void</span> callbackImage(<span class="keyword">const</span> sensor_msgs::ImageConstPtr&amp; image);</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;            <span class="comment">// To convert ROS Image type into a CvImage</span></div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;            cv_bridge::CvImagePtr cv_ptr_;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;            <span class="comment">// Define a subscriber to the image topic</span></div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;            ros::Subscriber sub_image_;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;            <span class="comment">// Width of the robot</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;            <span class="keywordtype">double</span> L_ = 0.67;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;            <span class="comment">// Image width and height</span></div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;            <span class="keyword">const</span> <span class="keywordtype">double</span> IMAGE_W_ = 1280, IMAGE_H_ = 720;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            <span class="comment">// Set the tilt angle of the camera</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;            <span class="keywordtype">float</span> alpha_ = -0.197;</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;            <span class="comment">// Define homogeneous transformation matrices</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;            cv::Mat_&lt;double&gt; robot_to_cam_translation_, cam_to_robot_translation_, world_to_robot_translation_, robot_to_world_translation_;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            cv::Mat_&lt;double&gt; robot_to_cam_rotation_, cam_to_robot_rotation_, world_to_robot_rotation_, robot_to_world_rotation_;</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;            cv::Mat_&lt;double&gt; cam_to_world_translation_, cam_to_world_rotation_;</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            </div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;            <span class="comment">// Define an internal calibration matrix</span></div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            cv::Mat_&lt;double&gt; K_;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;            <span class="comment">// Device to run the model on</span></div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            torch::Device device_;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;            <span class="keywordtype">void</span> callbackImage(<span class="keyword">const</span> sensor_msgs::ImageConstPtr&amp; image);</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;            <span class="comment">// To convert ROS Image type into a CvImage</span></div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;            cv_bridge::CvImagePtr cv_ptr_;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;            <span class="comment">// Define a subscriber to the image topic</span></div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;            ros::Subscriber sub_image_;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;            <span class="comment">// Width of the robot</span></div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            <span class="keywordtype">double</span> L_ = 0.67;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;            <span class="comment">// Image width and height</span></div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;            <span class="keyword">const</span> <span class="keywordtype">double</span> IMAGE_W_ = 1280, IMAGE_H_ = 720;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            <span class="comment">// Set the tilt angle of the camera</span></div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            <span class="keywordtype">float</span> alpha_ = -0.197;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            <span class="comment">// Define homogeneous transformation matrices</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;            cv::Mat_&lt;double&gt; robot_to_cam_translation_, cam_to_robot_translation_;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            cv::Mat_&lt;double&gt; robot_to_cam_rotation_, cam_to_robot_rotation_;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            </div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;            <span class="comment">// Define an internal calibration matrix</span></div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            cv::Mat_&lt;double&gt; K_;</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160; </div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;            <span class="comment">// NN model</span></div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;            torch::jit::script::Module model_;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;            <span class="comment">// Device to run the model on</span></div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;            torch::Device device_;</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            <span class="comment">// Define a transform to normalize the image</span></div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;            torch::data::transforms::Normalize&lt;&gt; normalize_transform_ = torch::data::transforms::Normalize&lt;&gt;({0.3426, 0.3569, 0.2914}, {0.1363, 0.1248, 0.1302});</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            <span class="comment">// NN model</span></div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;            torch::jit::script::Module model_;</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;            <span class="comment">// Define the bins midpoints</span></div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;            at::Tensor bins_midpoints_ = torch::tensor({{0.43156512}, {0.98983318}, {1.19973744}, {1.35943443}, {1.51740755}, {1.67225206}, {1.80821536}, {1.94262708}, {2.12798895}, {2.6080252}}, torch::kFloat);</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    };</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;}</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;            <span class="comment">// Define a transform to normalize the image</span></div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;            torch::data::transforms::Normalize&lt;&gt; normalize_transform_ = torch::data::transforms::Normalize&lt;&gt;({0.3426, 0.3569, 0.2914}, {0.1363, 0.1248, 0.1302});</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160; </div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;            <span class="comment">// Define the bins midpoints</span></div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;            at::Tensor bins_midpoints_ = torch::tensor({{0.43156512}, {0.98983318}, {1.19973744}, {1.35943443}, {1.51740755}, {1.67225206}, {1.80821536}, {1.94262708}, {2.12798895}, {2.6080252}}, torch::kFloat);</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    };</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;}</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a></div><div class="ttdoc">Uses camera images to extract the robot footprint and assign a cost to trajectories depending on the ...</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.h:37</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_aeb19d6124d795f6f5e26eddd0cf48755"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#aeb19d6124d795f6f5e26eddd0cf48755">dwa_ext_local_planner::TraversabilityCostFunction::scoreTrajectory</a></div><div class="ttdeci">virtual double scoreTrajectory(base_local_planner::Trajectory &amp;traj)</div><div class="ttdoc">Return a score for trajectory traj.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:81</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_a9aa8584373db51f7a7836711be3b15fc"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a9aa8584373db51f7a7836711be3b15fc">dwa_ext_local_planner::TraversabilityCostFunction::displayCosts</a></div><div class="ttdeci">void displayCosts(std::vector&lt; base_local_planner::Trajectory &gt; &amp;trajs)</div><div class="ttdoc">Display the costs of the trajectories.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:202</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_aeb19d6124d795f6f5e26eddd0cf48755"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#aeb19d6124d795f6f5e26eddd0cf48755">dwa_ext_local_planner::TraversabilityCostFunction::scoreTrajectory</a></div><div class="ttdeci">virtual double scoreTrajectory(base_local_planner::Trajectory &amp;traj)</div><div class="ttdoc">Return a score for trajectory traj.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:65</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_a4690e1e4ec42e48694bc4d12cc9566da"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a4690e1e4ec42e48694bc4d12cc9566da">dwa_ext_local_planner::TraversabilityCostFunction::TraversabilityCostFunction</a></div><div class="ttdeci">TraversabilityCostFunction()</div><div class="ttdoc">Construct a new Traversability Cost Function object.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:12</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_ab0fb90175f02a68c5b1e7330e6722732"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ab0fb90175f02a68c5b1e7330e6722732">dwa_ext_local_planner::TraversabilityCostFunction::prepare</a></div><div class="ttdeci">virtual bool prepare()</div><div class="ttdoc">General updating of context values.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:77</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_a9e38ab23d9db2384e5b87a1b798bed71"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a9e38ab23d9db2384e5b87a1b798bed71">dwa_ext_local_planner::TraversabilityCostFunction::~TraversabilityCostFunction</a></div><div class="ttdeci">virtual ~TraversabilityCostFunction()</div><div class="ttdoc">Destroy the Traversability Cost Function object.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:75</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_ab0fb90175f02a68c5b1e7330e6722732"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ab0fb90175f02a68c5b1e7330e6722732">dwa_ext_local_planner::TraversabilityCostFunction::prepare</a></div><div class="ttdeci">virtual bool prepare()</div><div class="ttdoc">General updating of context values.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:61</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_a1e20052e2adc2620c98bb9a9bc67c430"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a1e20052e2adc2620c98bb9a9bc67c430">dwa_ext_local_planner::TraversabilityCostFunction::displayTrajectoriesAndCosts</a></div><div class="ttdeci">void displayTrajectoriesAndCosts(std::vector&lt; base_local_planner::Trajectory &gt; &amp;trajs)</div><div class="ttdoc">Display the costs of the trajectories.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:184</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html_a9e38ab23d9db2384e5b87a1b798bed71"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a9e38ab23d9db2384e5b87a1b798bed71">dwa_ext_local_planner::TraversabilityCostFunction::~TraversabilityCostFunction</a></div><div class="ttdeci">virtual ~TraversabilityCostFunction()</div><div class="ttdoc">Destroy the Traversability Cost Function object.</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.cpp:59</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

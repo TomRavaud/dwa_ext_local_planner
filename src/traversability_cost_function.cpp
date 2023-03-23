@@ -132,6 +132,8 @@ namespace dwa_ext_local_planner {
                 cv::Mat rectangle_float;
                 cv::resize(rectangle, rectangle_float, cv::Size(210, 70));
 
+                // cv::imwrite("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/rectangle"+std::to_string(i)+".png", rectangle_float);
+
                 // Convert the image to float
                 rectangle_float.convertTo(rectangle_float, CV_32FC3, 1.0f / 255.0f);
 
@@ -179,7 +181,7 @@ namespace dwa_ext_local_planner {
         return cost;
     }
 
-    void TraversabilityCostFunction::displayCosts(std::vector<base_local_planner::Trajectory> &trajs)
+    void TraversabilityCostFunction::displayTrajectoriesAndCosts(std::vector<base_local_planner::Trajectory> &trajs)
     {   
         // Get the current image
         cv::Mat image_to_display = cv_ptr_->image;
@@ -227,18 +229,35 @@ namespace dwa_ext_local_planner {
                 if (current_pair_image[0].x > 0 && current_pair_image[0].x < IMAGE_W_ && current_pair_image[0].y > 0 && current_pair_image[0].y < IMAGE_H_
                     && current_pair_image[1].x > 0 && current_pair_image[1].x < IMAGE_W_ && current_pair_image[1].y > 0 && current_pair_image[1].y < IMAGE_H_)
                 {   
+                    // Draw circles at the 2D points on the image
+                    cv::circle(image_to_display, current_pair_image[0], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
+                    cv::circle(image_to_display, current_pair_image[1], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
+
+                    points_left.push_back(cv::Point(current_pair_image[0].x, current_pair_image[0].y));
+                    points_right.push_back(cv::Point(current_pair_image[1].x, current_pair_image[1].y));
+
+                    // If there is no previous pair of points, store the current pair of points
                     if (previous_pair_image.size() == 0)
                     {
                         previous_pair_image.push_back(current_pair_image[0]);
                         previous_pair_image.push_back(current_pair_image[1]);
                         continue;
                     }
-                    points_left.push_back(cv::Point(current_pair_image[0].x, current_pair_image[0].y));
-                    points_right.push_back(cv::Point(current_pair_image[1].x, current_pair_image[1].y));
 
-                    // Draw circles at the 2D points on the image
-                    cv::circle(image_to_display, current_pair_image[0], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
-                    cv::circle(image_to_display, current_pair_image[1], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
+                    cv::rectangle(image_to_display, cv::Point(
+                                                              std::min(current_pair_image[0].x, previous_pair_image[0].x),
+                                                              std::min(current_pair_image[0].y, current_pair_image[1].y)
+                                                              ),
+                                                    cv::Point(
+                                                              std::max(current_pair_image[1].x, previous_pair_image[1].x),
+                                                              std::max(previous_pair_image[0].y, previous_pair_image[1].y)
+                                                              ),
+                                                              cv::Scalar(0, 255, 0));
+
+                    // Store the current pair of points as the previous pair of points
+                    previous_pair_image.clear();
+                    previous_pair_image.push_back(current_pair_image[0]);
+                    previous_pair_image.push_back(current_pair_image[1]);
                 }
             }
             std::cout << "Trajectory " << i << " cost: " << trajs[i].cost_ << std::endl;
@@ -248,6 +267,9 @@ namespace dwa_ext_local_planner {
             std::reverse(points_right.begin(), points_right.end());
             points.insert(points.end(), points_right.begin(), points_right.end());
 
+            if (points.size() == 0)
+                continue;
+            
             // Create a vector of vectors of points to be able to use the fillPoly function
             std::vector<std::vector<cv::Point>> points_vector = {points};
 
@@ -260,9 +282,6 @@ namespace dwa_ext_local_planner {
             // Compute the green and red values to display the cost
             double green = 255/(cost_min - cost_max)*trajs[i].cost_ + 255*cost_max/(cost_max - cost_min);
             double red = 255 - green;
-
-            // if (points.size() == 0)
-            //     continue;
 
             // Draw the polygon
             cv::fillPoly(overlay, points_vector, cv::Scalar(0, green, red));
