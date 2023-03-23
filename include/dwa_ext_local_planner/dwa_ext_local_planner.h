@@ -38,6 +38,8 @@
 
 #include <base_local_planner/odometry_helper_ros.h>
 
+// #include <dwa_ext_local_planner/simple_trajectory_generator.h>
+
 
 namespace dwa_ext_local_planner{
   /**
@@ -127,7 +129,7 @@ namespace dwa_ext_local_planner{
       dwa_ext_local_planner::DWAExtPlannerConfig config_;
 
       // Define a trajectory generator
-		  base_local_planner::SimpleTrajectoryGenerator generator_;
+      base_local_planner::SimpleTrajectoryGenerator generator_;
 
       // Define the traversability cost function
       dwa_ext_local_planner::TraversabilityCostFunction traversability_costs_;

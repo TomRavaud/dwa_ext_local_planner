@@ -92,10 +92,8 @@ namespace dwa_ext_local_planner {
             float alpha_ = -0.197;
 
             // Define homogeneous transformation matrices
-            cv::Mat_<double> robot_to_cam_translation_, cam_to_robot_translation_, world_to_robot_translation_, robot_to_world_translation_;
-            cv::Mat_<double> robot_to_cam_rotation_, cam_to_robot_rotation_, world_to_robot_rotation_, robot_to_world_rotation_;
-
-            cv::Mat_<double> cam_to_world_translation_, cam_to_world_rotation_;
+            cv::Mat_<double> robot_to_cam_translation_, cam_to_robot_translation_;
+            cv::Mat_<double> robot_to_cam_rotation_, cam_to_robot_rotation_;
             
             // Define an internal calibration matrix
             cv::Mat_<double> K_;

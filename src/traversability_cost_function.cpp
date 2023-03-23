@@ -35,26 +35,10 @@ namespace dwa_ext_local_planner {
         // Set the translation vector to translate the robot frame to the camera frame
         cam_to_robot_translation_ = -cam_to_robot_rotation_*robot_to_cam_translation_;
 
-        // Set the rotation matrix to rotate the world frame to the robot frame
-        world_to_robot_rotation_ = cv::Mat::eye(3, 3, CV_32F);
-
-        // Set the rotation matrix to rotate the robot frame to the world frame
-        robot_to_world_rotation_ = cv::Mat::eye(3, 3, CV_32F);
-
-        // Set the translation vector to translate the world frame to the robot frame
-        world_to_robot_translation_ = cv::Mat::zeros(3, 1, CV_32F);
-
-        // Set the translation vector to translate the robot frame to the world frame
-        robot_to_world_translation_ = cv::Mat::zeros(3, 1, CV_32F);
-        
         // Set the internal calibration matrix
         K_ = (cv::Mat_<double>(3, 3) << 534, 0, IMAGE_W_/2,
                                         0, 534, IMAGE_H_/2,
                                         0, 0, 1);
-
-        // Compute the homogeneous transformation matrix to transform points from the camera frame to the world frame
-        cam_to_world_rotation_ = cam_to_robot_rotation_ * robot_to_world_rotation_;
-        cam_to_world_translation_ = cam_to_robot_rotation_ * robot_to_world_translation_ + cam_to_robot_translation_;
 
         // Device
         std::cout << "Device: " << device_ << std::endl;
@@ -80,10 +64,6 @@ namespace dwa_ext_local_planner {
 
     double TraversabilityCostFunction::scoreTrajectory(base_local_planner::Trajectory &traj)
     {   
-        // std::cout << traj.xv_ << std::endl;
-        // std::cout << traj.yv_ << std::endl;
-        // std::cout << traj.thetav_ << "\n" << std::endl;
-
         // Create a vector of inputs
         std::vector<torch::jit::IValue> rectangles;
 
@@ -96,7 +76,7 @@ namespace dwa_ext_local_planner {
         // Go through the points of the trajectory
         for (int i = 0; i < traj.getPointsSize() - 1; i++)
         {
-            // Define variables to store the current pose of the robot in the world frame
+            // Define variables to store the current pose of the robot in the robot frame
             double x, y, th;
 
             // Get the coordinates of the current point of the trajectory
@@ -108,20 +88,20 @@ namespace dwa_ext_local_planner {
 
             // Compute the positions of the outer points of the two front wheels
             // (z coordinate is set to 0 because we assume the ground is flat)
-            cv::Point3d current_point_left_world = cv::Point3d(x-delta_X, y+delta_Y, 0.0);
-            cv::Point3d current_point_right_world = cv::Point3d(x+delta_X, y-delta_Y, 0.0);
+            cv::Point3d current_point_left_robot = cv::Point3d(x-delta_X, y+delta_Y, 0.0);
+            cv::Point3d current_point_right_robot = cv::Point3d(x+delta_X, y-delta_Y, 0.0);
 
             // Define vectors to store the coordinates of the current pair of
-            // point in the world frame and in the image plan
-            std::vector<cv::Point3d> current_pair_world;
+            // point in the robot frame and in the image plan
+            std::vector<cv::Point3d> current_pair_robot;
             std::vector<cv::Point2d> current_pair_image;
 
             // Add the two points to the vector
-            current_pair_world.push_back(current_point_left_world);
-            current_pair_world.push_back(current_point_right_world);
+            current_pair_robot.push_back(current_point_left_robot);
+            current_pair_robot.push_back(current_point_right_robot);
 
             // Compute the coordinates of those two points in the image plan
-            cv::projectPoints(current_pair_world, cam_to_world_rotation_, cam_to_world_translation_, K_, cv::Mat(), current_pair_image);
+            cv::projectPoints(current_pair_robot, cam_to_robot_rotation_, cam_to_robot_translation_, K_, cv::Mat(), current_pair_image);
 
             // Keep only pairs of points contained in the image
             if (current_pair_image[0].x > 0 && current_pair_image[0].x < IMAGE_W_ && current_pair_image[0].y > 0 && current_pair_image[0].y < IMAGE_H_
@@ -214,13 +194,9 @@ namespace dwa_ext_local_planner {
             std::vector<cv::Point> points_right;
             std::vector<cv::Point> points;
 
-            // std::cout << trajs[i].xv_ << std::endl;
-            // std::cout << trajs[i].yv_ << std::endl;
-            // std::cout << trajs[i].thetav_ << std::endl;
-
             for (int j = 0; j < trajs[i].getPointsSize(); j++)
             {
-                // Define variables to store the current pose of the robot in the world frame
+                // Define variables to store the current pose of the robot in the robot frame
                 double x, y, th;
 
                 // Get the coordinates of the current point of the trajectory
@@ -232,20 +208,20 @@ namespace dwa_ext_local_planner {
 
                 // Compute the positions of the outer points of the two front wheels
                 // (z coordinate is set to 0 because we assume the ground is flat)
-                cv::Point3d current_point_left_world = cv::Point3d(x-delta_X, y+delta_Y, 0.0);
-                cv::Point3d current_point_right_world = cv::Point3d(x+delta_X, y-delta_Y, 0.0);
+                cv::Point3d current_point_left_robot = cv::Point3d(x-delta_X, y+delta_Y, 0.0);
+                cv::Point3d current_point_right_robot = cv::Point3d(x+delta_X, y-delta_Y, 0.0);
 
                 // Define vectors to store the coordinates of the current pair of
-                // point in the world frame and in the image plan
-                std::vector<cv::Point3d> current_pair_world;
+                // point in the robot frame and in the image plan
+                std::vector<cv::Point3d> current_pair_robot;
                 std::vector<cv::Point2d> current_pair_image;
 
                 // Add the two points to the vector
-                current_pair_world.push_back(current_point_left_world);
-                current_pair_world.push_back(current_point_right_world);
+                current_pair_robot.push_back(current_point_left_robot);
+                current_pair_robot.push_back(current_point_right_robot);
 
                 // Compute the coordinates of those two points in the image plan
-                cv::projectPoints(current_pair_world, cam_to_world_rotation_, cam_to_world_translation_, K_, cv::Mat(), current_pair_image);
+                cv::projectPoints(current_pair_robot, cam_to_robot_rotation_, cam_to_robot_translation_, K_, cv::Mat(), current_pair_image);
 
                 // Keep only pairs of points contained in the image
                 if (current_pair_image[0].x > 0 && current_pair_image[0].x < IMAGE_W_ && current_pair_image[0].y > 0 && current_pair_image[0].y < IMAGE_H_
@@ -284,6 +260,9 @@ namespace dwa_ext_local_planner {
             // Compute the green and red values to display the cost
             double green = 255/(cost_min - cost_max)*trajs[i].cost_ + 255*cost_max/(cost_max - cost_min);
             double red = 255 - green;
+
+            // if (points.size() == 0)
+            //     continue;
 
             // Draw the polygon
             cv::fillPoly(overlay, points_vector, cv::Scalar(0, green, red));
