@@ -17,7 +17,8 @@ namespace dwa_ext_local_planner {
         std::srand((unsigned)time(NULL));
 
         // Initialize the subscriber to the camera image topic
-		sub_image_ = nh.subscribe("camera1/image_raw", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
+		sub_image_ = nh.subscribe("zed_node/rgb/image_rect_color", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
+		// sub_image_ = nh.subscribe("camera1/image_raw", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
 
         // Set the translation vector
         robot_to_cam_translation_ = (cv::Mat_<double>(3, 1) << 0.084,
@@ -44,16 +45,53 @@ namespace dwa_ext_local_planner {
         std::cout << "Device: " << device_ << std::endl;
 
         // Load the model
-        model_ = torch::jit::load("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/src/resnet18_classification.pt");
+        model_ = torch::jit::load("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/src/resnet18_classification2.pt");
 
         // Send the model to the GPU
         model_.to(device_);
 
-        // Set the model to inference mode
-        model_.eval();
-
         // Send the bins midpoints to the GPU
         bins_midpoints_ = bins_midpoints_.to(device_);
+
+        // // Create a vector of inputs
+        // std::vector<torch::jit::IValue> inputs;
+
+        // // Create a vector to store the rectangular regions
+        // std::vector<torch::Tensor> rectangles_vector;
+
+        // for (int i = 8; i < 9; i++)
+        // {
+        // // Load the test image
+        // cv::Mat image = cv::imread("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/rectangle"+std::to_string(i)+".png");
+
+        // // Resize the image
+        // cv::Mat image_float;
+        // cv::resize(image, image_float, cv::Size(210, 70));
+
+        // // Convert the image to float
+        // image_float.convertTo(image_float, CV_32FC3, 1.0f / 255.0f);
+
+        // // Convert the image to tensor
+        // at::Tensor tensor = torch::from_blob(image_float.data, {1, image_float.rows, image_float.cols, image_float.channels()}, at::kFloat);
+        // tensor = tensor.permute({0, 3, 1, 2});
+
+        // // Normalize the image
+        // tensor = normalize_transform_(tensor);
+
+        // // Send the tensor to the GPU
+        // tensor = tensor.to(device_);
+        // // std::cout << tensor.options() << std::endl;
+
+        // // Add the tensor to the input vector
+        // rectangles_vector.push_back(tensor);
+        // }
+
+        // // Add the tensor to the input vector
+        // inputs.push_back(torch::cat(rectangles_vector));
+
+        // // Execute the model and turn its output into a tensor
+        // at::Tensor output = at::softmax(model_.forward(inputs).toTensor(), /*dim*/1);
+        // std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/10) << '\n';
     }
 
     TraversabilityCostFunction::~TraversabilityCostFunction(){}
@@ -63,7 +101,7 @@ namespace dwa_ext_local_planner {
     }
 
     double TraversabilityCostFunction::scoreTrajectory(base_local_planner::Trajectory &traj)
-    {   
+    {
         // Create a vector of inputs
         std::vector<torch::jit::IValue> rectangles;
 
@@ -120,13 +158,9 @@ namespace dwa_ext_local_planner {
                                                              std::max(previous_pair_image[0].y, previous_pair_image[1].y)),
                                                    cv::Range(std::min(current_pair_image[0].x, previous_pair_image[0].x),
                                                              std::max(current_pair_image[1].x, previous_pair_image[1].x)));
-
-                // FIXME:
-                // If the rectangle is empty, continue
-                if (rectangle.empty())
-                {
-                    continue;
-                }
+                
+                // Check that the rectangle is not empty
+                assert(!rectangle.empty());
 
                 // Resize the image
                 cv::Mat rectangle_float;
@@ -136,6 +170,9 @@ namespace dwa_ext_local_planner {
 
                 // Convert the image to float
                 rectangle_float.convertTo(rectangle_float, CV_32FC3, 1.0f / 255.0f);
+
+                // Disable gradient computation 
+                torch::NoGradGuard no_grad;
 
                 // Convert the image to tensor
                 at::Tensor rectangle_tensor = torch::from_blob(rectangle_float.data, {1, rectangle_float.rows, rectangle_float.cols, rectangle_float.channels()}, at::kFloat);
@@ -170,7 +207,7 @@ namespace dwa_ext_local_planner {
         // Execute the model and turn its output into a tensor
         at::Tensor output = at::softmax(model_.forward(rectangles).toTensor(), /*dim*/1);
         // std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/10) << '\n';
-
+        
         // Compute the expected costs over the bins
         at::Tensor result = torch::mm(output, bins_midpoints_);
 
@@ -184,7 +221,7 @@ namespace dwa_ext_local_planner {
     void TraversabilityCostFunction::displayTrajectoriesAndCosts(std::vector<base_local_planner::Trajectory> &trajs)
     {   
         // Get the current image
-        cv::Mat image_to_display = cv_ptr_->image;
+        cv::Mat image_to_display = cv_ptr_->image.clone();
 
         // Display the costs of the trajectories
         for (int i = 0; i < trajs.size(); i++)
@@ -195,6 +232,10 @@ namespace dwa_ext_local_planner {
             std::vector<cv::Point> points_left;
             std::vector<cv::Point> points_right;
             std::vector<cv::Point> points;
+
+            std::cout << trajs[i].xv_ << std::endl;
+            std::cout << trajs[i].yv_ << std::endl;
+            std::cout << trajs[i].thetav_ << std::endl;
 
             for (int j = 0; j < trajs[i].getPointsSize(); j++)
             {
@@ -230,8 +271,8 @@ namespace dwa_ext_local_planner {
                     && current_pair_image[1].x > 0 && current_pair_image[1].x < IMAGE_W_ && current_pair_image[1].y > 0 && current_pair_image[1].y < IMAGE_H_)
                 {   
                     // Draw circles at the 2D points on the image
-                    cv::circle(image_to_display, current_pair_image[0], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
-                    cv::circle(image_to_display, current_pair_image[1], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
+                    // cv::circle(image_to_display, current_pair_image[0], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
+                    // cv::circle(image_to_display, current_pair_image[1], 5, cv::Scalar(0, 0, 255), -1);  // draw a filled circle at the point
 
                     points_left.push_back(cv::Point(current_pair_image[0].x, current_pair_image[0].y));
                     points_right.push_back(cv::Point(current_pair_image[1].x, current_pair_image[1].y));
@@ -244,15 +285,16 @@ namespace dwa_ext_local_planner {
                         continue;
                     }
 
-                    cv::rectangle(image_to_display, cv::Point(
-                                                              std::min(current_pair_image[0].x, previous_pair_image[0].x),
-                                                              std::min(current_pair_image[0].y, current_pair_image[1].y)
-                                                              ),
-                                                    cv::Point(
-                                                              std::max(current_pair_image[1].x, previous_pair_image[1].x),
-                                                              std::max(previous_pair_image[0].y, previous_pair_image[1].y)
-                                                              ),
-                                                              cv::Scalar(0, 255, 0));
+                    // Draw the bounding box
+                    // cv::rectangle(image_to_display, cv::Point(
+                    //                                           std::min(current_pair_image[0].x, previous_pair_image[0].x),
+                    //                                           std::min(current_pair_image[0].y, current_pair_image[1].y)
+                    //                                           ),
+                    //                                 cv::Point(
+                    //                                           std::max(current_pair_image[1].x, previous_pair_image[1].x),
+                    //                                           std::max(previous_pair_image[0].y, previous_pair_image[1].y)
+                    //                                           ),
+                    //                                           cv::Scalar(0, 255, 0));
 
                     // Store the current pair of points as the previous pair of points
                     previous_pair_image.clear();
@@ -282,6 +324,9 @@ namespace dwa_ext_local_planner {
             // Compute the green and red values to display the cost
             double green = 255/(cost_min - cost_max)*trajs[i].cost_ + 255*cost_max/(cost_max - cost_min);
             double red = 255 - green;
+
+            // std::cout << "green: " << green << std::endl;
+            // std::cout << "red: " << red << std::endl;
 
             // Draw the polygon
             cv::fillPoly(overlay, points_vector, cv::Scalar(0, green, red));

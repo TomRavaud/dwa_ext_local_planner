@@ -190,7 +190,7 @@ namespace dwa_ext_local_planner
 
 		std::cout << "Number of trajectories sampled: " << all_explored.size() << std::endl;
 
-		traversability_costs_.displayTrajectoriesAndCosts(all_explored);
+		// traversability_costs_.displayTrajectoriesAndCosts(all_explored);
 
 		// Print the cost associated with the best trajectory
 		// std::cout << result_traj_.xv_ << std::endl;

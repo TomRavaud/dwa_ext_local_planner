@@ -37,7 +37,7 @@ DWAExtPlannerROS:
 
   vx_samples: 1
   vy_samples: 1  # In fact, one sample : vy = 0 because acc_lim_y = 0
-  vth_samples: 7
+  vth_samples: 6
 
   penalize_negative_x: true
 
