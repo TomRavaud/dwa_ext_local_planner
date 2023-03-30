@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
 )
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4.2.0 REQUIRED)
 
 find_package(Torch REQUIRED)
 

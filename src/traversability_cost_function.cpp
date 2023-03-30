@@ -6,7 +6,7 @@ namespace dwa_ext_local_planner {
 	void TraversabilityCostFunction::callbackImage(const sensor_msgs::ImageConstPtr& image)
 	{   
 		// Convert and copy the ROS Image into a CvImage
-    	cv_ptr_ = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+    	cv_ptr_ = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::RGB8);
 	}
 
     TraversabilityCostFunction::TraversabilityCostFunction() : device_(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU)
@@ -52,168 +52,46 @@ namespace dwa_ext_local_planner {
 
         // Send the bins midpoints to the GPU
         bins_midpoints_ = bins_midpoints_.to(device_);
-
-        // // Create a vector of inputs
-        // std::vector<torch::jit::IValue> inputs;
-
-        // // Create a vector to store the rectangular regions
-        // std::vector<torch::Tensor> rectangles_vector;
-
-        // for (int i = 8; i < 9; i++)
-        // {
-        // // Load the test image
-        // cv::Mat image = cv::imread("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/rectangle"+std::to_string(i)+".png");
-
-        // // Resize the image
-        // cv::Mat image_float;
-        // cv::resize(image, image_float, cv::Size(210, 70));
-
-        // // Convert the image to float
-        // image_float.convertTo(image_float, CV_32FC3, 1.0f / 255.0f);
-
-        // // Convert the image to tensor
-        // at::Tensor tensor = torch::from_blob(image_float.data, {1, image_float.rows, image_float.cols, image_float.channels()}, at::kFloat);
-        // tensor = tensor.permute({0, 3, 1, 2});
-
-        // // Normalize the image
-        // tensor = normalize_transform_(tensor);
-
-        // // Send the tensor to the GPU
-        // tensor = tensor.to(device_);
-        // // std::cout << tensor.options() << std::endl;
-
-        // // Add the tensor to the input vector
-        // rectangles_vector.push_back(tensor);
-        // }
-
-        // // Add the tensor to the input vector
-        // inputs.push_back(torch::cat(rectangles_vector));
-
-        // // Execute the model and turn its output into a tensor
-        // at::Tensor output = at::softmax(model_.forward(inputs).toTensor(), /*dim*/1);
-        // std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/10) << '\n';
     }
 
     TraversabilityCostFunction::~TraversabilityCostFunction(){}
 
-    bool TraversabilityCostFunction::prepare() {
+    bool TraversabilityCostFunction::prepare()
+    {
+        // Initialize the index of the trajectory
+        index_trajectory_ = 0;
+
+        // Initialize the index of the rectangle
+        index_rectangle_ = 0;
+
         return true;
     }
 
     double TraversabilityCostFunction::scoreTrajectory(base_local_planner::Trajectory &traj)
-    {
-        // Create a vector of inputs
-        std::vector<torch::jit::IValue> rectangles;
+    {   
+        // Get the number of rectangles in the current trajectory
+        int nb_rectangles = nb_rectangles_vector_[index_trajectory_];
 
-        // Create a vector to store the rectangular regions
-        std::vector<torch::Tensor> rectangles_vector;
+        // Disable gradient computation 
+        at::NoGradGuard no_grad;
 
-        // Create a vector to store the previous pair of points
-        std::vector<cv::Point2d> previous_pair_image;
+        // Extract the predicted costs on the rectangles of the current trajectory
+        at::Tensor predicted_costs_rectangles_trajectory = predicted_costs_rectangles_.narrow(0,
+                                                                                              index_rectangle_,
+                                                                                              nb_rectangles);
 
-        // Go through the points of the trajectory
-        for (int i = 0; i < traj.getPointsSize() - 1; i++)
-        {
-            // Define variables to store the current pose of the robot in the robot frame
-            double x, y, th;
+        // Increment the index of the trajectory
+        index_trajectory_++;
 
-            // Get the coordinates of the current point of the trajectory
-            traj.getPoint(i, x, y, th);
-            
-            // Compute the distances between the wheels and the robot's origin
-            double delta_X = L_*sin(th)/2;
-            double delta_Y = L_*cos(th)/2;
+        // Increment the index of the rectangle
+        index_rectangle_ += nb_rectangles;
 
-            // Compute the positions of the outer points of the two front wheels
-            // (z coordinate is set to 0 because we assume the ground is flat)
-            cv::Point3d current_point_left_robot = cv::Point3d(x-delta_X, y+delta_Y, 0.0);
-            cv::Point3d current_point_right_robot = cv::Point3d(x+delta_X, y-delta_Y, 0.0);
-
-            // Define vectors to store the coordinates of the current pair of
-            // point in the robot frame and in the image plan
-            std::vector<cv::Point3d> current_pair_robot;
-            std::vector<cv::Point2d> current_pair_image;
-
-            // Add the two points to the vector
-            current_pair_robot.push_back(current_point_left_robot);
-            current_pair_robot.push_back(current_point_right_robot);
-
-            // Compute the coordinates of those two points in the image plan
-            cv::projectPoints(current_pair_robot, cam_to_robot_rotation_, cam_to_robot_translation_, K_, cv::Mat(), current_pair_image);
-
-            // Keep only pairs of points contained in the image
-            if (current_pair_image[0].x > 0 && current_pair_image[0].x < IMAGE_W_ && current_pair_image[0].y > 0 && current_pair_image[0].y < IMAGE_H_
-                && current_pair_image[1].x > 0 && current_pair_image[1].x < IMAGE_W_ && current_pair_image[1].y > 0 && current_pair_image[1].y < IMAGE_H_)
-            {   
-                // If this is the first pair of points, store it and continue
-                if (previous_pair_image.size() == 0)
-                {
-                    previous_pair_image.push_back(current_pair_image[0]);
-                    previous_pair_image.push_back(current_pair_image[1]);
-                    continue;
-                }
-
-                // Get the bounding box given the two pairs of points
-                cv::Mat rectangle = cv_ptr_->image(cv::Range(std::min(current_pair_image[0].y, current_pair_image[1].y),
-                                                             std::max(previous_pair_image[0].y, previous_pair_image[1].y)),
-                                                   cv::Range(std::min(current_pair_image[0].x, previous_pair_image[0].x),
-                                                             std::max(current_pair_image[1].x, previous_pair_image[1].x)));
-                
-                // Check that the rectangle is not empty
-                assert(!rectangle.empty());
-
-                // Resize the image
-                cv::Mat rectangle_float;
-                cv::resize(rectangle, rectangle_float, cv::Size(210, 70));
-
-                // cv::imwrite("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/rectangle"+std::to_string(i)+".png", rectangle_float);
-
-                // Convert the image to float
-                rectangle_float.convertTo(rectangle_float, CV_32FC3, 1.0f / 255.0f);
-
-                // Disable gradient computation 
-                torch::NoGradGuard no_grad;
-
-                // Convert the image to tensor
-                at::Tensor rectangle_tensor = torch::from_blob(rectangle_float.data, {1, rectangle_float.rows, rectangle_float.cols, rectangle_float.channels()}, at::kFloat);
-                rectangle_tensor = rectangle_tensor.permute({0, 3, 1, 2});
-
-                // Normalize the image
-                rectangle_tensor = normalize_transform_(rectangle_tensor);
-
-                // Send the tensor to the GPU
-                rectangle_tensor = rectangle_tensor.to(device_);
-                // std::cout << tensor.options() << std::endl;
-
-                // Add the tensor to the input vector
-                rectangles_vector.push_back(rectangle_tensor);
-
-                // Store the current pair of points as the previous pair of points
-                previous_pair_image.clear();
-                previous_pair_image.push_back(current_pair_image[0]);
-                previous_pair_image.push_back(current_pair_image[1]);
-            }
-        }
-
-        // If there are no rectangles, return -1
-        if (rectangles_vector.size() == 0)
-        {
-            return -1;
-        }
-
-        // Concatenate the tensors
-        rectangles.push_back(torch::cat(rectangles_vector));
-
-        // Execute the model and turn its output into a tensor
-        at::Tensor output = at::softmax(model_.forward(rectangles).toTensor(), /*dim*/1);
-        // std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/10) << '\n';
-        
         // Compute the expected costs over the bins
-        at::Tensor result = torch::mm(output, bins_midpoints_);
+        at::Tensor expected_costs_rectangles = at::mm(predicted_costs_rectangles_trajectory,
+                                                      bins_midpoints_);
 
         // Get the maximum cost
-        at::Tensor cost_tensor = at::max(result);
-        double cost = cost_tensor.item<double>();
+        double cost = at::max(expected_costs_rectangles).item<double>();
 
         return cost;
     }
@@ -325,18 +203,152 @@ namespace dwa_ext_local_planner {
             double green = 255/(cost_min - cost_max)*trajs[i].cost_ + 255*cost_max/(cost_max - cost_min);
             double red = 255 - green;
 
-            // std::cout << "green: " << green << std::endl;
-            // std::cout << "red: " << red << std::endl;
-
             // Draw the polygon
             cv::fillPoly(overlay, points_vector, cv::Scalar(0, green, red));
 
             // Weighted sum of the original image and the overlay to create transparency
-            double transparency = 0.5;  // Specify the level of transparency
+            double transparency = 0.3;  // Specify the level of transparency
             cv::addWeighted(overlay, transparency, image_to_display, 1 - transparency, 0, image_to_display);
         }
         // Display the current image
 		cv::imshow("Preview", image_to_display);
     	cv::waitKey(1);
+    }
+
+    void TraversabilityCostFunction::predictRectangles(base_local_planner::SimpleTrajectoryGenerator generator)
+    {   
+        // Create a vector of inputs
+        std::vector<torch::jit::IValue> rectangles;
+
+        // Create a vector to store the rectangular regions
+        std::vector<at::Tensor> rectangles_vector;
+
+        // Create a trajectory object
+		base_local_planner::Trajectory traj;
+
+        // Define a variable to store the success state of the trajectory generation
+		bool generation_success;
+
+        // Define a variable to count the number of trajectories
+        int nb_trajectories = 0;
+        
+        nb_rectangles_vector_.clear();
+
+        // Go through all the trajectories
+		while (generator.hasMoreTrajectories())
+		{
+            // Generate the next trajectory
+        	generation_success = generator.nextTrajectory(traj);
+
+            // Define a variable to store the number of rectangles in the current trajectory
+            int nb_rectangles = 0;
+
+			// Check if the trajectory was successfully generated
+			if (generation_success == false)
+				continue;
+            
+            nb_trajectories++;
+
+            // Create an array to store the previous pair of points
+            float previous_pair_image[4];
+            bool is_previous_pair_image_initialized = false;
+
+            // Go through the points of the trajectory
+            for (int i = 0; i < traj.getPointsSize() - 1; i++)
+            {
+                // Define variables to store the current pose of the robot in the robot frame
+                double x, y, th;
+
+                // Get the coordinates of the current point of the trajectory
+                traj.getPoint(i, x, y, th);
+
+                // Compute the distances between the wheels and the robot's origin
+                double delta_X = L_*sin(th)/2;
+                double delta_Y = L_*cos(th)/2;
+
+                // Compute the positions of the outer points of the two front wheels
+                // (z coordinate is set to 0 because we assume the ground is flat)
+                cv::Point3f current_point_left_robot = cv::Point3f(x-delta_X, y+delta_Y, 0.0);
+                cv::Point3f current_point_right_robot = cv::Point3f(x+delta_X, y-delta_Y, 0.0);
+
+                // Define vectors to store the coordinates of the current pair of
+                // point in the robot frame and in the image plan
+                std::vector<cv::Point3f> current_pair_robot;
+                std::vector<cv::Point2f> current_pair_image;
+
+                // Add the two points to the vector
+                current_pair_robot.push_back(current_point_left_robot);
+                current_pair_robot.push_back(current_point_right_robot);
+
+                // Compute the coordinates of those two points in the image plan
+                cv::projectPoints(current_pair_robot, cam_to_robot_rotation_, cam_to_robot_translation_, K_, cv::Mat(), current_pair_image);
+
+                // Keep only pairs of points contained in the image
+                if (current_pair_image[0].x > 0 && current_pair_image[0].x < IMAGE_W_ &&
+                    current_pair_image[0].y > 0 && current_pair_image[0].y < IMAGE_H_ &&
+                    current_pair_image[1].x > 0 && current_pair_image[1].x < IMAGE_W_ &&
+                    current_pair_image[1].y > 0 && current_pair_image[1].y < IMAGE_H_)
+                {   
+                    // If this is the first pair of points, store it and continue
+                    if (!is_previous_pair_image_initialized)
+                    {
+                        // Initialize the previous pair of points
+                        previous_pair_image[0] = current_pair_image[0].x;
+                        previous_pair_image[1] = current_pair_image[0].y;
+                        previous_pair_image[2] = current_pair_image[1].x;
+                        previous_pair_image[3] = current_pair_image[1].y;
+
+                        // Set the flag to true
+                        is_previous_pair_image_initialized = true;
+
+                        continue;
+                    }
+                    // Get the bounding box given the two pairs of points
+                    cv::Mat rectangle_image = cv_ptr_->image(cv::Range(std::min(current_pair_image[0].y, current_pair_image[1].y),
+                                                                       std::max(previous_pair_image[1], previous_pair_image[3])),
+                                                             cv::Range(std::min(current_pair_image[0].x, previous_pair_image[0]),
+                                                                       std::max(current_pair_image[1].x, previous_pair_image[2])));
+
+                    // Resize the image
+                    cv::resize(rectangle_image, rectangle_image, cv::Size(210, 70));
+
+                    // Convert the image to float and set the range to [0, 1]
+                    rectangle_image.convertTo(rectangle_image, CV_32FC3, 1.0f / 255.0f);
+
+                    // Disable gradient computation 
+                    at::NoGradGuard no_grad;
+
+                    // Convert the image to tensor
+                    at::Tensor rectangle_tensor = at::from_blob(rectangle_image.data,
+                                                                {1,
+                                                                rectangle_image.rows,
+                                                                rectangle_image.cols,
+                                                                rectangle_image.channels()},
+                                                                at::kFloat);
+                    rectangle_tensor = rectangle_tensor.permute({0, 3, 1, 2});
+
+                    // Make a copy of the tensor and store it in the vector
+                    rectangles_vector.push_back(rectangle_tensor.clone());
+
+                    // Store the current pair of points as the previous pair of points
+                    previous_pair_image[0] = current_pair_image[0].x;
+                    previous_pair_image[1] = current_pair_image[0].y;
+                    previous_pair_image[2] = current_pair_image[1].x;
+                    previous_pair_image[3] = current_pair_image[1].y;
+
+                    // Increment the number of rectangles
+                    nb_rectangles++;
+                }
+            }
+            nb_rectangles_vector_.push_back(nb_rectangles);
+		}
+        // Concatenate and normalize the tensors and send them to the GPU
+        rectangles.push_back(normalize_transform_(at::cat(rectangles_vector)).to(device_));
+
+        // Execute the model and turn its output into a tensor
+        predicted_costs_rectangles_ = at::softmax(model_.forward(rectangles).toTensor(), /*dim*/1);
+
+        // Set the number of trajectories
+        nb_trajectories_ = nb_trajectories;
     }
 }

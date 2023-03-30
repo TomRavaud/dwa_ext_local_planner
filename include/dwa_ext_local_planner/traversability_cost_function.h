@@ -26,6 +26,8 @@
 
 #include <chrono>
 
+#include <base_local_planner/simple_trajectory_generator.h>
+
 
 namespace dwa_ext_local_planner {
     /**
@@ -73,6 +75,13 @@ namespace dwa_ext_local_planner {
              */
             void displayTrajectoriesAndCosts(std::vector<base_local_planner::Trajectory> &trajs);
 
+            /**
+             * @brief Predict the cost of the rectangles
+             * 
+             * @param generator The trajectory generator
+             */
+            void predictRectangles(base_local_planner::SimpleTrajectoryGenerator generator);
+
         private:
             /**
              * @brief Callback function to get the camera image
@@ -112,8 +121,29 @@ namespace dwa_ext_local_planner {
             // Define a transform to normalize the image
             torch::data::transforms::Normalize<> normalize_transform_ = torch::data::transforms::Normalize<>({0.3426, 0.3569, 0.2914}, {0.1363, 0.1248, 0.1302});
 
-            // Define the bins midpoints
-            at::Tensor bins_midpoints_ = torch::tensor({{0.43156512}, {0.98983318}, {1.19973744}, {1.35943443}, {1.51740755}, {1.67225206}, {1.80821536}, {1.94262708}, {2.12798895}, {2.6080252}}, torch::kFloat);
+            // Set the bins midpoints
+            at::Tensor bins_midpoints_ = torch::tensor({{0.43156512},
+                                                        {0.98983318},
+                                                        {1.19973744},
+                                                        {1.35943443},
+                                                        {1.51740755},
+                                                        {1.67225206},
+                                                        {1.80821536},
+                                                        {1.94262708},
+                                                        {2.12798895},
+                                                        {2.6080252}}, torch::kFloat);
+
+            // Define a vector to store the number of rectangles per trajectory
+            std::vector<int> nb_rectangles_vector_;
+
+            // Define a variable to store the number of trajectories
+            int nb_trajectories_;
+
+            // Define a tensor to store the predicted costs
+            at::Tensor predicted_costs_rectangles_;
+
+            // Define variables to store the index of the trajectory and the rectangle
+            int index_trajectory_, index_rectangle_;
     };
 }
 

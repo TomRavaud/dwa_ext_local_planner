@@ -144,30 +144,24 @@ namespace dwa_ext_local_planner
 		// Number of trajectories to sample
 		Eigen::Vector3f vsamples(config_.vx_samples, config_.vy_samples, config_.vth_samples);
 
-		// Get the robot pose in the map
-		// costmap_ros_->getRobotPose(current_pose_);
-
 		// Read the current odometry message on the odometry topic
 		nav_msgs::Odometry odom;
 		odom_helper_.getOdom(odom);
 
-		// Read the current velocity of the robot on the odometry topic
-		// geometry_msgs::PoseStamped robot_vel;
-    	// odom_helper_.getRobotVel(robot_vel);
-
 		// Set the current position of the robot
 		Eigen::Vector3f pos(odom.pose.pose.position.x, odom.pose.pose.position.y, tf2::getYaw(odom.pose.pose.orientation));
-		// Eigen::Vector3f pos(current_pose_.pose.position.x, current_pose_.pose.position.y, tf2::getYaw(current_pose_.pose.orientation));
 		
 		// Set the current velocity of the robot
     	Eigen::Vector3f vel(odom.twist.twist.linear.x, odom.twist.twist.linear.y, odom.twist.twist.angular.z);
-    	// Eigen::Vector3f vel(robot_vel.pose.position.x, robot_vel.pose.position.y, tf2::getYaw(robot_vel.pose.orientation));
 		
 		// Set a random goal position
 		Eigen::Vector3f goal(4.0, 3.0, 5.0);
 
 		// Initialize the trajectory generator given the current state of the robot
 		generator_.initialise(pos, vel, goal, &limits_, vsamples, false);
+
+		// Predict the cost of the rectangles
+		traversability_costs_.predictRectangles(generator_);
 
 		// Create a vector to store all the different cost functions
     	std::vector<base_local_planner::TrajectoryCostFunction*> critics;
@@ -188,25 +182,25 @@ namespace dwa_ext_local_planner
     	std::vector<base_local_planner::Trajectory> all_explored;
     	scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
-		std::cout << "Number of trajectories sampled: " << all_explored.size() << std::endl;
+		std::cout << "Number of trajectories sampled: " << all_explored.size() << '\n';
 
 		// traversability_costs_.displayTrajectoriesAndCosts(all_explored);
 
 		// Print the cost associated with the best trajectory
-		// std::cout << result_traj_.xv_ << std::endl;
+		// std::cout << result_traj_.xv_ << '\n';
 
 		// Fill the velocity command message
-		cmd_vel.linear.x = result_traj_.xv_;
-		cmd_vel.linear.y = result_traj_.yv_;
-		cmd_vel.angular.z = result_traj_.thetav_;
+		// cmd_vel.linear.x = result_traj_.xv_;
+		// cmd_vel.linear.y = result_traj_.yv_;
+		// cmd_vel.angular.z = result_traj_.thetav_;
 
 		// Get the current time
 		auto time_stop = std::chrono::high_resolution_clock::now();
 
 		// Calculate and display the time taken by the planner
 		std::chrono::duration<double, std::milli> time_taken = time_stop - time_start;
-		std::cout << "Time taken: " << time_taken.count()*0.001 << " second(s)" << std::endl;
-		std::cout << "Frequency: " << 1/(time_taken.count()*0.001) << " Hz\n" << std::endl;
+		std::cout << "Time taken: " << time_taken.count()*0.001 << " second(s)" << '\n';
+		std::cout << "Frequency: " << 1/(time_taken.count()*0.001) << " Hz\n" << '\n';
 
 		return true;
 	}
