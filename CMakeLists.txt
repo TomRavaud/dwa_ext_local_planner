@@ -38,7 +38,7 @@ add_definitions(${EIGEN3_DEFINITIONS})  #TODO:
 
 # Dynamic reconfigure
 generate_dynamic_reconfigure_options(
-    cfg/DWAExtPlanner.cfg
+    config/DWAExtPlanner.cfg
 )
 
 catkin_package(
@@ -57,7 +57,7 @@ catkin_package(
 
 ## Declare a C++ library
 add_library(dwa_ext_local_planner
-  src/dwa_ext_local_planner.cpp src/traversability_cost_function.cpp
+  src/dwa_ext_local_planner_ros.cpp src/dwa_ext_local_planner.cpp src/traversability_cost_function.cpp
 )
 
 # add_dependencies(dwa_ext_local_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -69,6 +69,10 @@ target_link_libraries(dwa_ext_local_planner
    ${TORCH_LIBRARIES}
 )
 
+# Set the optimization level to O2
+target_compile_options(dwa_ext_local_planner PRIVATE -O2)
+
+
 # install(TARGETS dwa_ext_local_planner
 #        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -78,3 +82,4 @@ target_link_libraries(dwa_ext_local_planner
 # install(FILES lp_plugin.xml
 #     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
+

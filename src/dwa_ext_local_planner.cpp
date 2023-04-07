@@ -1,29 +1,45 @@
 #include "dwa_ext_local_planner/dwa_ext_local_planner.h"
 
-// Allow us to register classes as plugins
-#include <pluginlib/class_list_macros.h>
-
-
-// Register this planner as a BaseLocalPlanner plugin
-PLUGINLIB_EXPORT_CLASS(dwa_ext_local_planner::DWAExtPlannerROS,
-					   nav_core::BaseLocalPlanner)
 
 namespace dwa_ext_local_planner
-{
-	DWAExtPlannerROS::DWAExtPlannerROS()
-		: costmap_ros_(NULL), tf_(NULL), initialized_(false) {}
-
-	DWAExtPlannerROS::DWAExtPlannerROS(std::string name, tf2_ros::Buffer *tf,
-									   costmap_2d::Costmap2DROS *costmap_ros)
-		: costmap_ros_(NULL), tf_(NULL), initialized_(false)
+{	
+	DWAExtPlanner::DWAExtPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util) :
+		planner_util_(planner_util),
+		path_costs_(planner_util->getCostmap())
 	{
-		// Initialize the planner
-		initialize(name, tf, costmap_ros);
+		// Allow us to create a private namespace within the move_base
+		// node's namespace to avoid conflicts with dynamic reconfigure
+		// servers' names
+		ros::NodeHandle private_nh("~/" + name);
+
+		// Define a string variable to store the name of the controller frequency parameter
+		std::string controller_frequency_param_name;
+
+		// If the parameter does not exist, use a default value
+		if (!private_nh.searchParam("controller_frequency", controller_frequency_param_name))
+			sim_period_ = 0.05;
+		else
+		{
+			double controller_frequency = 0;
+			private_nh.param(controller_frequency_param_name, controller_frequency, 20.0);
+
+			if (controller_frequency > 0)
+			sim_period_ = 1.0 / controller_frequency;
+			else
+			{
+			ROS_WARN("A controller_frequency less than 0 has been set. Ignoring the parameter, assuming a rate of 20Hz");
+			sim_period_ = 0.05;
+			}
+		}
+		ROS_INFO("Sim period is set to %.2f", sim_period_);
+
+		// Allow to read the odometry topic
+		odom_helper_.setOdomTopic(odom_topic_);
 	}
 
-	DWAExtPlannerROS::~DWAExtPlannerROS() {}
+	DWAExtPlanner::~DWAExtPlanner() {}
 
-	void DWAExtPlannerROS::callbackReconfigure(DWAExtPlannerConfig &config, uint32_t level)
+	void DWAExtPlanner::reconfigure(DWAExtPlannerConfig &config)
 	{	
 		// Set the parameters of the trajectory generator
 		generator_.setParameters(
@@ -52,91 +68,33 @@ namespace dwa_ext_local_planner
       	limits_.trans_stopped_vel = config.trans_stopped_vel;
       	limits_.theta_stopped_vel = config.theta_stopped_vel;
 
+		planner_util_->reconfigureCB(limits_, config.restore_defaults);
+
 		// Store the new configuration
 		config_ = config;
 
 		ROS_INFO("Reconfiguration");
 	}
 
-	void DWAExtPlannerROS::initialize(std::string name, tf2_ros::Buffer *tf, costmap_2d::Costmap2DROS *costmap_ros)
+	bool DWAExtPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan)
 	{
-		begin = ros::Time::now(); 
+		// Store the global plan
+		planner_util_->setPlan(orig_global_plan);
 
-		// Check if the plugin has been initialized
-		if (!initialized_)
-		{
-			// Allow us to create a private namespace within the move_base
-			// node's namespace to avoid conflicts with dynamic reconfigure
-			// servers' names
-			ros::NodeHandle private_nh("~/" + name);
+		// Set the costs for going away from path
+    	path_costs_.setTargetPoses(orig_global_plan);
 
-			// Copy address of costmap and Transform Listener
-			// (handed over from move_base)
-			costmap_ros_ = costmap_ros;
-			tf_ = tf;
-
-			// Assuming this planner is being run within the navigation stack, we can
-    		// just do an upward search for the frequency at which its being run. This
-    		// also allows the frequency to be overwritten locally.
-    		std::string controller_frequency_param_name;
-    		if(!private_nh.searchParam("controller_frequency", controller_frequency_param_name)) {
-    		  sim_period_ = 0.05;
-    		} else {
-    		  double controller_frequency = 0;
-    		  private_nh.param(controller_frequency_param_name, controller_frequency, 20.0);
-    		  if(controller_frequency > 0) {
-    		    sim_period_ = 1.0 / controller_frequency;
-    		  } else {
-    		    ROS_WARN("A controller_frequency less than 0 has been set. Ignoring the parameter, assuming a rate of 20Hz");
-    		    sim_period_ = 0.05;
-    		  }
-    		}
-    		ROS_INFO("Sim period is set to %.2f", sim_period_);
-
-			// Allow to read the odometry topic
-			odom_helper_.setOdomTopic(odom_topic_);
-			
-			// Define a dynamic reconfigure server
-			config_server_ = new dynamic_reconfigure::Server<DWAExtPlannerConfig>(private_nh);
-
-			// Define a callback function called each time the server gets a
-			// reconfiguration request
-      		dynamic_reconfigure::Server<DWAExtPlannerConfig>::CallbackType callback_reconfigure;
-			callback_reconfigure = boost::bind(
-				&dwa_ext_local_planner::DWAExtPlannerROS::callbackReconfigure,
-				this, _1, _2);
-  			config_server_->setCallback(callback_reconfigure);
-
-			// Set initialized flag
-			initialized_ = true;
-
-			ROS_INFO("Local Planner plugin initialized.");
-		}
-		else
-		{
-			ROS_WARN("This planner has already been initialized, doing nothing.");
-		}
-	}
-
-	bool DWAExtPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped> &orig_global_plan)
-	{
-		// Check if the plugin has been initialized
-		if (!initialized_)
-		{
-			ROS_ERROR("This planner has not been initialized");
-			return false;
-		}
 		return true;
 	}
 
-	bool DWAExtPlannerROS::computeVelocityCommands(geometry_msgs::Twist &cmd_vel)
+	base_local_planner::Trajectory DWAExtPlanner::computeVelocityCommands(geometry_msgs::PoseStamped current_pose, geometry_msgs::Twist &cmd_vel)
 	{
-		// Check if the plugin has been initialized
-		if (!initialized_)
-		{
-			ROS_ERROR("This planner has not been initialized");
-			return false;
-		}
+		// Get the local plan
+		// geometry_msgs::PoseStamped global_pose;
+		// planner_util_.getGoal(global_pose);
+		// std::vector<geometry_msgs::PoseStamped> plan;
+		// planner_util_.getLocalPlan(global_pose, plan);
+		// path_costs.setTargetPoses(plan);
 
 		// Get the current time
 		auto time_start = std::chrono::high_resolution_clock::now();	
@@ -145,28 +103,46 @@ namespace dwa_ext_local_planner
 		Eigen::Vector3f vsamples(config_.vx_samples, config_.vy_samples, config_.vth_samples);
 
 		// Read the current odometry message on the odometry topic
+		// In fact we get the pose and the velocity of the robot expressed
+		// in the base_link frame: the velocity is the same that the
+		// velocity published on the odometry topic (supposed to be in the
+		// frame of the base) and the pose is set to zero
 		nav_msgs::Odometry odom;
 		odom_helper_.getOdom(odom);
 
-		// Set the current position of the robot
-		Eigen::Vector3f pos(odom.pose.pose.position.x, odom.pose.pose.position.y, tf2::getYaw(odom.pose.pose.orientation));
+		// Set the current pose of the robot
+		// Eigen::Vector3f pos(odom.pose.pose.position.x,
+		// 					odom.pose.pose.position.y,
+		// 					tf2::getYaw(odom.pose.pose.orientation));	
+
+		Eigen::Vector3f pos(current_pose.pose.position.x,
+							current_pose.pose.position.y,
+							tf2::getYaw(current_pose.pose.orientation));
+
 		
 		// Set the current velocity of the robot
-    	Eigen::Vector3f vel(odom.twist.twist.linear.x, odom.twist.twist.linear.y, odom.twist.twist.angular.z);
+    	Eigen::Vector3f vel(odom.twist.twist.linear.x,
+							odom.twist.twist.linear.y,
+							odom.twist.twist.angular.z);
 		
-		// Set a random goal position
-		Eigen::Vector3f goal(4.0, 3.0, 5.0);
+		// Set the goal position
+		geometry_msgs::PoseStamped goal_pose;
+		planner_util_->getGoal(goal_pose);
+		Eigen::Vector3f goal(goal_pose.pose.position.x,
+							 goal_pose.pose.position.y,
+							 tf2::getYaw(goal_pose.pose.orientation));
 
 		// Initialize the trajectory generator given the current state of the robot
 		generator_.initialise(pos, vel, goal, &limits_, vsamples, false);
 
 		// Predict the cost of the rectangles
-		traversability_costs_.predictRectangles(generator_);
+		// traversability_costs_.predictRectangles(generator_);
 
 		// Create a vector to store all the different cost functions
     	std::vector<base_local_planner::TrajectoryCostFunction*> critics;
 		// Set up the terrain traversability cost function
-		critics.push_back(&traversability_costs_);  // Prefers trajectories that keep the robot on smooth terrains
+		// critics.push_back(&traversability_costs_);  // Prefers trajectories that keep the robot on smooth terrains
+		critics.push_back(&path_costs_); // prefers trajectories on global path
 
 		// Create a vector of TrajectorySampleGenerator pointers
 		// (generators other than the first are fallback generators)
@@ -182,47 +158,69 @@ namespace dwa_ext_local_planner
     	std::vector<base_local_planner::Trajectory> all_explored;
     	scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
-		std::cout << "Number of trajectories sampled: " << all_explored.size() << '\n';
+		ROS_INFO("Number of trajectories sampled: %d", static_cast<int>(all_explored.size()));
 
 		// traversability_costs_.displayTrajectoriesAndCosts(all_explored);
 
 		// Print the cost associated with the best trajectory
 		// std::cout << result_traj_.xv_ << '\n';
 
+		// Check if the planner succeeded in finding a valid plan
+		if (result_traj_.cost_ < 0.0)
+		{
+			ROS_WARN("The local planner failed to find a valid plan. Velocity set to zero.");
+			cmd_vel.linear.x = 0.0;
+			cmd_vel.linear.y = 0.0;
+			cmd_vel.angular.z = 0.0;
+		}
+
 		// Fill the velocity command message
-		// cmd_vel.linear.x = result_traj_.xv_;
-		// cmd_vel.linear.y = result_traj_.yv_;
-		// cmd_vel.angular.z = result_traj_.thetav_;
+		cmd_vel.linear.x = result_traj_.xv_;
+		cmd_vel.linear.y = result_traj_.yv_;
+		cmd_vel.angular.z = result_traj_.thetav_;
 
 		// Get the current time
 		auto time_stop = std::chrono::high_resolution_clock::now();
 
 		// Calculate and display the time taken by the planner
-		std::chrono::duration<double, std::milli> time_taken = time_stop - time_start;
-		std::cout << "Time taken: " << time_taken.count()*0.001 << " second(s)" << '\n';
-		std::cout << "Frequency: " << 1/(time_taken.count()*0.001) << " Hz\n" << '\n';
+		std::chrono::duration<double> time_taken = time_stop - time_start;
+		ROS_INFO("Time taken: %f second(s)", time_taken.count());
+		ROS_INFO("Frequency: %f Hz \n", 1.0 / time_taken.count());
 
-		return true;
+		return result_traj_;
 	}
 
-	bool DWAExtPlannerROS::isGoalReached()
+	bool DWAExtPlanner::checkTrajectory(
+      Eigen::Vector3f pos,
+      Eigen::Vector3f vel,
+      Eigen::Vector3f vel_samples)
 	{
-		// Check if the plugin has been initialized
-		if (!initialized_)
-		{
-			ROS_ERROR("This planner has not been initialized");
-			return false;
-		}
-		
-		// Wait for 200 seconds and set the reached goal status to true
-		if (ros::Time::now().toSec() - begin.toSec() > 200.0)
-		{
-			ROS_INFO("Reached goal"); 
-			return true; 
-		}
-		else 
-			ROS_INFO_THROTTLE(5, "It takes time to reach the goal"); 
+    	// oscillation_costs_.resetOscillationFlags();
+    	base_local_planner::Trajectory traj;
+    	geometry_msgs::PoseStamped goal_pose;
+		planner_util_->getGoal(goal_pose);
 
-		return false;
-	}
+    	Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf2::getYaw(goal_pose.pose.orientation));
+
+    	base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
+
+		Eigen::Vector3f vsamples(config_.vx_samples, config_.vy_samples, config_.vth_samples);
+
+    	generator_.initialise(pos,
+    	    vel,
+    	    goal,
+    	    &limits,
+    	    vsamples);
+
+    	generator_.generateTrajectory(pos, vel, vel_samples, traj);
+    	double cost = scored_sampling_planner_.scoreTrajectory(traj, -1);
+    	//if the trajectory is a legal one... the check passes
+    	if(cost >= 0) {
+    	  return true;
+    	}
+    	ROS_WARN("Invalid Trajectory %f, %f, %f, cost: %f", vel_samples[0], vel_samples[1], vel_samples[2], cost);
+
+    	//otherwise the check fails
+    	return false;
+  	}
 }

@@ -17,8 +17,8 @@ namespace dwa_ext_local_planner {
         std::srand((unsigned)time(NULL));
 
         // Initialize the subscriber to the camera image topic
-		sub_image_ = nh.subscribe("zed_node/rgb/image_rect_color", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
-		// sub_image_ = nh.subscribe("camera1/image_raw", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
+		// sub_image_ = nh.subscribe("zed_node/rgb/image_rect_color", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
+		sub_image_ = nh.subscribe("camera1/image_raw", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
 
         // Set the translation vector
         robot_to_cam_translation_ = (cv::Mat_<double>(3, 1) << 0.084,
@@ -42,7 +42,7 @@ namespace dwa_ext_local_planner {
                                         0, 0, 1);
 
         // Device
-        std::cout << "Device: " << device_ << std::endl;
+        ROS_INFO("Device for NN inference is %s", device_.str().c_str());
 
         // Load the model
         model_ = torch::jit::load("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/src/resnet18_classification2.pt");
@@ -76,22 +76,22 @@ namespace dwa_ext_local_planner {
         at::NoGradGuard no_grad;
 
         // Extract the predicted costs on the rectangles of the current trajectory
-        at::Tensor predicted_costs_rectangles_trajectory = predicted_costs_rectangles_.narrow(0,
-                                                                                              index_rectangle_,
-                                                                                              nb_rectangles);
+        // at::Tensor predicted_costs_rectangles_trajectory = predicted_costs_rectangles_.narrow(0,
+        //                                                                                       index_rectangle_,
+        //                                                                                       nb_rectangles);
+
+        // Compute the expected costs over the bins
+        // at::Tensor expected_costs_rectangles = at::mm(predicted_costs_rectangles_trajectory,
+        //                                               bins_midpoints_);
+
+        // Get the maximum cost
+        double cost = at::max(expected_costs_rectangles_.narrow(0, index_rectangle_, nb_rectangles)).item<double>();
 
         // Increment the index of the trajectory
         index_trajectory_++;
 
         // Increment the index of the rectangle
         index_rectangle_ += nb_rectangles;
-
-        // Compute the expected costs over the bins
-        at::Tensor expected_costs_rectangles = at::mm(predicted_costs_rectangles_trajectory,
-                                                      bins_midpoints_);
-
-        // Get the maximum cost
-        double cost = at::max(expected_costs_rectangles).item<double>();
 
         return cost;
     }
@@ -217,6 +217,8 @@ namespace dwa_ext_local_planner {
 
     void TraversabilityCostFunction::predictRectangles(base_local_planner::SimpleTrajectoryGenerator generator)
     {   
+        auto time_start = std::chrono::high_resolution_clock::now();
+
         // Create a vector of inputs
         std::vector<torch::jit::IValue> rectangles;
 
@@ -343,12 +345,23 @@ namespace dwa_ext_local_planner {
             nb_rectangles_vector_.push_back(nb_rectangles);
 		}
         // Concatenate and normalize the tensors and send them to the GPU
+        auto time_tic = std::chrono::high_resolution_clock::now();
         rectangles.push_back(normalize_transform_(at::cat(rectangles_vector)).to(device_));
+        auto time_toc = std::chrono::high_resolution_clock::now();
 
         // Execute the model and turn its output into a tensor
-        predicted_costs_rectangles_ = at::softmax(model_.forward(rectangles).toTensor(), /*dim*/1);
+        // predicted_costs_rectangles = at::softmax(model_.forward(rectangles).toTensor(), /*dim*/1);
+
+        expected_costs_rectangles_ = at::mm(at::softmax(model_.forward(rectangles).toTensor(), /*dim*/1),
+                                            bins_midpoints_);
 
         // Set the number of trajectories
         nb_trajectories_ = nb_trajectories;
+
+        auto time_stop = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> time_taken = time_stop - time_start;
+        // std::chrono::duration<double> time_tic_toc = time_toc - time_tic;
+        // std::cout << "Time taken pred: " << time_taken.count() << " s" << std::endl;
+        // std::cout << "Time tic toc: " << time_tic_toc.count()/time_taken.count()*100 << " %" << std::endl;
     }
 }

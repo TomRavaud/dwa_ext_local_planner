@@ -1,6 +1,6 @@
 // Include guards to prevent double declarations (eq #pragma once)
-#ifndef DWA_EXT_LOCAL_PLANNER_ROS_H_
-#define DWA_EXT_LOCAL_PLANNER_ROS_H_
+#ifndef DWA_EXT_LOCAL_PLANNER_H_
+#define DWA_EXT_LOCAL_PLANNER_H_
 
 // Abstract class from which our plugin inherits
 #include <nav_core/base_local_planner.h>
@@ -16,7 +16,6 @@
 #include <tf2/utils.h>
 
 // Dynamic reconfigure
-#include <dynamic_reconfigure/server.h>
 #include <dwa_ext_local_planner/DWAExtPlannerConfig.h>
 
 #include <vector>
@@ -38,8 +37,6 @@
 
 #include <base_local_planner/odometry_helper_ros.h>
 
-// #include <dwa_ext_local_planner/simple_trajectory_generator.h>
-
 
 namespace dwa_ext_local_planner{
   /**
@@ -48,25 +45,29 @@ namespace dwa_ext_local_planner{
    * BaseLocalPlanner interface and can be used as a plugin for move_base.
    * 
    */
-  class DWAExtPlannerROS : public nav_core::BaseLocalPlanner{
+  class DWAExtPlanner{
 
     public:
 
-      /**
-       * @brief Constructor for DWAExtPlannerROS wrapper
-       */
-      DWAExtPlannerROS();
+      // /**
+      //  * @brief Constructor for DWAExtPlannerROS wrapper
+      //  */
+      // DWAExtPlanner();
 
-      /**
-       * @brief Constructor for DWAExtPlannerROS wrapper
-       */
-      DWAExtPlannerROS(std::string name, tf2_ros::Buffer* tf,
-                       costmap_2d::Costmap2DROS* costmap_ros);
+      DWAExtPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util);
+
+      // /**
+      //  * @brief Constructor for DWAExtPlannerROS wrapper
+      //  */
+      // DWAExtPlanner(std::string name, tf2_ros::Buffer* tf,
+      //                  costmap_2d::Costmap2DROS* costmap_ros);
 
       /**
        * @brief Destructor for the wrapper
        */
-      ~DWAExtPlannerROS();
+      ~DWAExtPlanner();
+
+      void reconfigure(DWAExtPlannerConfig &config);
 
       /**
        * @brief Constructs the ROS wrapper
@@ -94,7 +95,7 @@ namespace dwa_ext_local_planner{
        * @param cmd_vel Will be filled with the velocity command to be passed to the robot base
        * @return True if a valid trajectory was found, false otherwise
        */
-      bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);
+      base_local_planner::Trajectory computeVelocityCommands(geometry_msgs::PoseStamped current_pose, geometry_msgs::Twist& cmd_vel);
 
       /**
        * @brief Check if the goal pose has been achieved
@@ -103,29 +104,14 @@ namespace dwa_ext_local_planner{
        */
       bool isGoalReached();
 
+      double getSimPeriod() {return sim_period_;}
+
+      Eigen::Vector3f getAccLimits() {return limits_.getAccLimits();}
+
+      bool checkTrajectory(Eigen::Vector3f pos, Eigen::Vector3f vel, Eigen::Vector3f vel_samples);
+
     private:
-      /**
-       * @brief Callback function called each time the dynamic_reconfigure
-       * server is sent a new configuration
-       * 
-       * @param config The new configuration
-       * @param level A bit mask
-       */
-      void callbackReconfigure(DWAExtPlannerConfig &config, uint32_t level);
 
-      // Local cost map attribute
-      costmap_2d::Costmap2DROS* costmap_ros_;
-
-      // Pointer to the transform listener
-      tf2_ros::Buffer* tf_;
-
-      // To know if the local planner has been initialized or not
-      bool initialized_;
-
-      // Pointer to the dynamic reconfigure server
-      dynamic_reconfigure::Server<DWAExtPlannerConfig> *config_server_;
-
-      // Define a variable to store the local planner parameters
       dwa_ext_local_planner::DWAExtPlannerConfig config_;
 
       // Define a trajectory generator
@@ -134,13 +120,14 @@ namespace dwa_ext_local_planner{
       // Define the traversability cost function
       dwa_ext_local_planner::TraversabilityCostFunction traversability_costs_;
 
+      // Define the global path preference cost function
+      base_local_planner::MapGridCostFunction path_costs_;
+
       // Define the scored sampling planner that will be used to associate the trajectories to costs
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
 
       // Define a variable to store the best trajectory
       base_local_planner::Trajectory result_traj_;
-
-      // base_local_planner::LocalPlannerUtil planner_util_;
 
       // Define a variable to store the current pose of the robot
       // geometry_msgs::PoseStamped current_pose_;
@@ -153,6 +140,9 @@ namespace dwa_ext_local_planner{
 
       // Define a variable to store the local planner limits
 		  base_local_planner::LocalPlannerLimits limits_;
+      
+      // Create a local planner util object
+      base_local_planner::LocalPlannerUtil *planner_util_;
 
       ros::Time begin;
   };

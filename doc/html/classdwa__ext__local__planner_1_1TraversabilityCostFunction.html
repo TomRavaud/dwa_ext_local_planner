@@ -113,6 +113,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1e20052e2adc2620c98bb9a9bc67c430"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a1e20052e2adc2620c98bb9a9bc67c430">displayTrajectoriesAndCosts</a> (std::vector&lt; base_local_planner::Trajectory &gt; &amp;trajs)</td></tr>
 <tr class="memdesc:a1e20052e2adc2620c98bb9a9bc67c430"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display the costs of the trajectories.  <a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a1e20052e2adc2620c98bb9a9bc67c430">More...</a><br /></td></tr>
 <tr class="separator:a1e20052e2adc2620c98bb9a9bc67c430"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3044e658c7d2ca0ecf73a14ba859b6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ad3044e658c7d2ca0ecf73a14ba859b6c">predictRectangles</a> (base_local_planner::SimpleTrajectoryGenerator generator)</td></tr>
+<tr class="memdesc:ad3044e658c7d2ca0ecf73a14ba859b6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Predict the cost of the rectangles.  <a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ad3044e658c7d2ca0ecf73a14ba859b6c">More...</a><br /></td></tr>
+<tr class="separator:ad3044e658c7d2ca0ecf73a14ba859b6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Uses camera images to extract the robot footprint and assign a cost to trajectories depending on the terrain traversability. </p>
@@ -184,6 +187,32 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">trajs</td><td>The sampled trajectories </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ad3044e658c7d2ca0ecf73a14ba859b6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3044e658c7d2ca0ecf73a14ba859b6c">&#9670;&nbsp;</a></span>predictRectangles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void dwa_ext_local_planner::TraversabilityCostFunction::predictRectangles </td>
+          <td>(</td>
+          <td class="paramtype">base_local_planner::SimpleTrajectoryGenerator&#160;</td>
+          <td class="paramname"><em>generator</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Predict the cost of the rectangles. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">generator</td><td>The trajectory generator </td></tr>
   </table>
   </dd>
 </dl>

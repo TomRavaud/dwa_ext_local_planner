@@ -140,7 +140,8 @@ namespace dwa_ext_local_planner {
             int nb_trajectories_;
 
             // Define a tensor to store the predicted costs
-            at::Tensor predicted_costs_rectangles_;
+            // at::Tensor predicted_costs_rectangles_;
+            at::Tensor expected_costs_rectangles_;
 
             // Define variables to store the index of the trajectory and the rectangle
             int index_trajectory_, index_rectangle_;
