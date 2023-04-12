@@ -2,15 +2,14 @@
 #ifndef DWA_EXT_LOCAL_PLANNER_H_
 #define DWA_EXT_LOCAL_PLANNER_H_
 
-// Abstract class from which our plugin inherits
-#include <nav_core/base_local_planner.h>
-
-// There are some cool features in goal_functions
+// Includes useful functions related to the goal and plan
 #include <base_local_planner/goal_functions.h>
 
-#include <ros/ros.h>
+// Include useful messages
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
+
+// To deal with transforms and ROS costmaps
 #include <tf2_ros/buffer.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <tf2/utils.h>
@@ -21,20 +20,31 @@
 #include <vector>
 #include <Eigen/Core>
 
+// Trajectory class
 #include <base_local_planner/trajectory.h>
+
+// A class to gather the local planner limits
 #include <base_local_planner/local_planner_limits.h>
-#include <base_local_planner/local_planner_util.h>
+
+// The trajectory generator (trajectories are circular arcs)
 #include <base_local_planner/simple_trajectory_generator.h>
 
+// Cost functions
 #include <base_local_planner/oscillation_cost_function.h>
-#include <base_local_planner/map_grid_cost_function.h>
 #include <base_local_planner/obstacle_cost_function.h>
+#include <base_local_planner/map_grid_cost_function.h>
 #include <base_local_planner/twirling_cost_function.h>
-#include <base_local_planner/simple_scored_sampling_planner.h>
 
 // Custom cost function to assess the terrain traversability
 #include "dwa_ext_local_planner/traversability_cost_function.h"
 
+// The planner which associates costs to trajectories
+#include <base_local_planner/simple_scored_sampling_planner.h>
+
+// A class containing useful methods when working with a local planner
+#include <base_local_planner/local_planner_util.h>
+
+// A class to help us read an odometry topic
 #include <base_local_planner/odometry_helper_ros.h>
 
 
@@ -49,28 +59,29 @@ namespace dwa_ext_local_planner{
 
     public:
 
-      // /**
-      //  * @brief Constructor for DWAExtPlannerROS wrapper
-      //  */
-      // DWAExtPlanner();
-
+      /**
+       * @brief Construct a new DWAExtPlanner object
+       * 
+       * @param name The name to give this instance of the trajectory planner
+       * @param planner_util
+       */
       DWAExtPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util);
 
-      // /**
-      //  * @brief Constructor for DWAExtPlannerROS wrapper
-      //  */
-      // DWAExtPlanner(std::string name, tf2_ros::Buffer* tf,
-      //                  costmap_2d::Costmap2DROS* costmap_ros);
-
       /**
-       * @brief Destructor for the wrapper
+       * @brief Destroy the DWAExtPlanner object
+       * 
        */
       ~DWAExtPlanner();
 
+      /**
+       * @brief Reconfigures the trajectory planner
+       * 
+       * @param config The current configuration of the trajectory planner
+       */
       void reconfigure(DWAExtPlannerConfig &config);
 
       /**
-       * @brief Constructs the ROS wrapper
+       * @brief Initializes the trajectory planner
        * 
        * @param name The name to give this instance of the trajectory planner
        * @param tf A pointer to a transform listener
@@ -104,10 +115,29 @@ namespace dwa_ext_local_planner{
        */
       bool isGoalReached();
 
+      /**
+       * @brief Get the simulation period
+       * 
+       * @return double 
+       */
       double getSimPeriod() {return sim_period_;}
 
+      /**
+       * @brief Get the acceleration limites
+       * 
+       * @return Eigen::Vector3f 
+       */
       Eigen::Vector3f getAccLimits() {return limits_.getAccLimits();}
 
+      /**
+       * @brief Check if a trajectory is valid (ie has a positive cost)
+       * 
+       * @param pos The position of the robot
+       * @param vel The velocity of the robot
+       * @param vel_samples The velocity samples to check
+       * @return true 
+       * @return false 
+       */
       bool checkTrajectory(Eigen::Vector3f pos, Eigen::Vector3f vel, Eigen::Vector3f vel_samples);
 
     private:
@@ -120,10 +150,12 @@ namespace dwa_ext_local_planner{
       // Define the traversability cost function
       dwa_ext_local_planner::TraversabilityCostFunction traversability_costs_;
 
+      // Define the oscillation cost function
+      base_local_planner::OscillationCostFunction oscillation_costs_;
       // Define the global path preference cost function
       base_local_planner::MapGridCostFunction path_costs_;
 
-      // Define the scored sampling planner that will be used to associate the trajectories to costs
+      // Define the scored sampling planner that will be used to associate costs to trajectories
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
 
       // Define a variable to store the best trajectory
@@ -134,7 +166,7 @@ namespace dwa_ext_local_planner{
 
       // Define variables to help us to read the odometry topic
       base_local_planner::OdometryHelperRos odom_helper_;
-      std::string odom_topic_ = "odometry/filtered";
+      std::string odom_topic_ { "odometry/filtered" };
 
       double sim_period_;
 

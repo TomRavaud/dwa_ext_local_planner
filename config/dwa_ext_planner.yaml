@@ -1,6 +1,5 @@
 # Custom values for the parameters of the local planner
 DWAExtPlannerROS:
-  # holonomic_robot: false
   # x: direction parallel to robot's straight movement
   # y: direction perpendicular to robot's straight movement, useful for holonomic robots
 
@@ -12,14 +11,14 @@ DWAExtPlannerROS:
 
   # x linear velocity
   max_vel_x: 1  # default 1.0 m/s, traversability: 0.5
-  min_vel_x: 0.2  # traversability: 0.5
+  min_vel_x: 0.1  # traversability: 0.5
 
   # y linear velocity (should be set to zero for non-holonomic robots)
   max_vel_y: 0.0
   min_vel_y: 0.0
 
   # z angular velocity
-  max_vel_theta: 1  # default 2.0 rad/s, traversability 0.3
+  max_vel_theta: 0.5  # default 2.0 rad/s, traversability 0.3
   min_vel_theta: 0.0
 
   # Translational velocity (same as x velocity)
@@ -35,6 +34,7 @@ DWAExtPlannerROS:
   sim_time: 5.5  # Number of seconds to look forward
   sim_granularity: 0.2  # Time step used to discretize a trajectory
 
+  # Velocities sampling
   vx_samples: 10  # traversability: 1
   vy_samples: 1
   vth_samples: 20  # traversability: 6
@@ -52,3 +52,9 @@ DWAExtPlannerROS:
 
   # Oscillation Prevention Parameters
   oscillation_reset_dist: 0.05 # How far the robot must travel in meters before oscillation flags are reset (double, default: 0.05)
+
+
+  Traversability:
+    # image_topic: "zed_node/rgb/image_rect_color"
+    image_topic: "camera1/image_raw"
+    model_definition_file: "/home/tom/Traversability-Tom/catkin_ws/src/dwa_ext_local_planner/models/resnet18/resnet18_classification.pt"

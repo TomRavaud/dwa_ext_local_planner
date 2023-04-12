@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['scoretrajectory_24',['scoreTrajectory',['../classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#aeb19d6124d795f6f5e26eddd0cf48755',1,'dwa_ext_local_planner::TraversabilityCostFunction']]],
-  ['setplan_25',['setPlan',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#ac21cf08ac51e7d4a5663dc66db554a3c',1,'dwa_ext_local_planner::DWAExtPlanner::setPlan()'],['../classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a4a2f91d411c498a21c1b489cbb1952e1',1,'dwa_ext_local_planner::DWAExtPlannerROS::setPlan()']]]
+  ['predictrectangles_30',['predictRectangles',['../classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ad3044e658c7d2ca0ecf73a14ba859b6c',1,'dwa_ext_local_planner::TraversabilityCostFunction']]],
+  ['prepare_31',['prepare',['../classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ab0fb90175f02a68c5b1e7330e6722732',1,'dwa_ext_local_planner::TraversabilityCostFunction']]]
 ];

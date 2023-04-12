@@ -194,14 +194,7 @@ namespace dwa_ext_local_planner
 			return false;
 		}
 		
-		// Wait for 200 seconds and set the reached goal status to true
-		if (ros::Time::now().toSec() - begin.toSec() > 200.0)
-		{
-			ROS_INFO("Reached goal"); 
-			return true; 
-		}
-		else 
-			ROS_INFO_THROTTLE(5, "It takes time to reach the goal"); 
+		ROS_INFO_THROTTLE(5, "Reaching the goal"); 
 		
 		// Check if the goal has been reached (position and orientation)
 		if (latched_stop_rotate_controller_.isGoalReached(&planner_util_, odom_helper_, current_pose_))

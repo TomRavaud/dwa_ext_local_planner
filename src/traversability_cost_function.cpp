@@ -16,9 +16,11 @@ namespace dwa_ext_local_planner {
         // Initialize the random number generator
         std::srand((unsigned)time(NULL));
 
+        std::string image_topic {};
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/image_topic", image_topic);
+
         // Initialize the subscriber to the camera image topic
-		// sub_image_ = nh.subscribe("zed_node/rgb/image_rect_color", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
-		sub_image_ = nh.subscribe("camera1/image_raw", 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
+		sub_image_ = nh.subscribe(image_topic, 1, &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage, this);
 
         // Set the translation vector
         robot_to_cam_translation_ = (cv::Mat_<double>(3, 1) << 0.084,
@@ -44,8 +46,12 @@ namespace dwa_ext_local_planner {
         // Device
         ROS_INFO("Device for NN inference is %s", device_.str().c_str());
 
+        // Get the path of the model definition file
+        std::string model_definition_file {};
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/model_definition_file", model_definition_file);
+
         // Load the model
-        model_ = torch::jit::load("/home/tom/Traversability-Tom/Husky/src/dwa_ext_local_planner/src/resnet18_classification2.pt");
+        model_ = torch::jit::load(model_definition_file);
 
         // Send the model to the GPU
         model_.to(device_);

@@ -5,21 +5,17 @@
 // Abstract class from which our plugin inherits
 #include <nav_core/base_local_planner.h>
 
-// There are some cool features in goal_functions
-#include <base_local_planner/goal_functions.h>
-
+// ROS C++ API
 #include <ros/ros.h>
+
+// Dynamic reconfigure
 #include <dynamic_reconfigure/server.h>
 #include <dwa_ext_local_planner/DWAExtPlannerConfig.h>
 
 #include <vector>
 
-#include <base_local_planner/trajectory.h>
-#include <base_local_planner/local_planner_limits.h>
-#include <base_local_planner/local_planner_util.h>
-
-#include <base_local_planner/odometry_helper_ros.h>
-
+// A controller to stop the robot when it is close to the goal
+// (and correct a deviation on the angular position)
 #include <base_local_planner/latched_stop_rotate_controller.h>
 
 // DWA Ext planner class
@@ -128,7 +124,7 @@ namespace dwa_ext_local_planner{
 
       // Define variables to help us to read the odometry topic
       base_local_planner::OdometryHelperRos odom_helper_;
-      std::string odom_topic_ = "odometry/filtered";
+      std::string odom_topic_ { "odometry/filtered" };
 
       // Define a variable to store the current pose of the robot
       geometry_msgs::PoseStamped current_pose_;

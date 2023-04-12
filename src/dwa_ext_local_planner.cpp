@@ -14,27 +14,44 @@ namespace dwa_ext_local_planner
 
 		// Define a string variable to store the name of the controller frequency parameter
 		std::string controller_frequency_param_name;
+		
+		// Get the controller frequency and set the simulation period
+		double controller_frequency {};
+		private_nh.getParam("/move_base/controller_frequency", controller_frequency);
+		sim_period_ = 1.0 / controller_frequency;
 
-		// If the parameter does not exist, use a default value
-		if (!private_nh.searchParam("controller_frequency", controller_frequency_param_name))
-			sim_period_ = 0.05;
-		else
-		{
-			double controller_frequency = 0;
-			private_nh.param(controller_frequency_param_name, controller_frequency, 20.0);
-
-			if (controller_frequency > 0)
-			sim_period_ = 1.0 / controller_frequency;
-			else
-			{
-			ROS_WARN("A controller_frequency less than 0 has been set. Ignoring the parameter, assuming a rate of 20Hz");
-			sim_period_ = 0.05;
-			}
-		}
 		ROS_INFO("Sim period is set to %.2f", sim_period_);
 
 		// Allow to read the odometry topic
 		odom_helper_.setOdomTopic(odom_topic_);
+		
+		// Initialize the oscillation flags
+		oscillation_costs_.resetOscillationFlags();
+
+		// Create a vector to store all the different cost functions
+    	std::vector<base_local_planner::TrajectoryCostFunction*> critics;
+
+		// Discards oscillating motions (assigns a negative cost)
+		// (to prevent the robot from oscillating between some trajectories
+		// without making progress the goal, and encourage the robot to explore
+		// alternative trajectories)
+		critics.push_back(&oscillation_costs_);
+
+		// Prefers trajectories that keep the robot on smooth terrains
+		// critics.push_back(&traversability_costs_);
+
+		// Prefers trajectories on global path
+		critics.push_back(&path_costs_);
+
+		// Create a vector of TrajectorySampleGenerator pointers
+		// (generators other than the first are fallback generators)
+		std::vector<base_local_planner::TrajectorySampleGenerator*> generators_list;
+
+		// Append the previously created generator to the list
+    	generators_list.push_back(&generator_);
+
+		// Initialize the scored sampling planner
+    	scored_sampling_planner_ = base_local_planner::SimpleScoredSamplingPlanner(generators_list, critics);
 	}
 
 	DWAExtPlanner::~DWAExtPlanner() {}
@@ -68,7 +85,11 @@ namespace dwa_ext_local_planner
       	limits_.trans_stopped_vel = config.trans_stopped_vel;
       	limits_.theta_stopped_vel = config.theta_stopped_vel;
 
+		// Reconfigure the planner util
 		planner_util_->reconfigureCB(limits_, config.restore_defaults);
+
+		oscillation_costs_.setOscillationResetDist(config.oscillation_reset_dist,
+												   config.oscillation_reset_angle);
 
 		// Store the new configuration
 		config_ = config;
@@ -84,18 +105,13 @@ namespace dwa_ext_local_planner
 		// Set the costs for going away from path
     	path_costs_.setTargetPoses(orig_global_plan);
 
+		oscillation_costs_.resetOscillationFlags();
+
 		return true;
 	}
 
 	base_local_planner::Trajectory DWAExtPlanner::computeVelocityCommands(geometry_msgs::PoseStamped current_pose, geometry_msgs::Twist &cmd_vel)
 	{
-		// Get the local plan
-		// geometry_msgs::PoseStamped global_pose;
-		// planner_util_.getGoal(global_pose);
-		// std::vector<geometry_msgs::PoseStamped> plan;
-		// planner_util_.getLocalPlan(global_pose, plan);
-		// path_costs.setTargetPoses(plan);
-
 		// Get the current time
 		auto time_start = std::chrono::high_resolution_clock::now();	
 		
@@ -138,22 +154,6 @@ namespace dwa_ext_local_planner
 		// Predict the cost of the rectangles
 		// traversability_costs_.predictRectangles(generator_);
 
-		// Create a vector to store all the different cost functions
-    	std::vector<base_local_planner::TrajectoryCostFunction*> critics;
-		// Set up the terrain traversability cost function
-		// critics.push_back(&traversability_costs_);  // Prefers trajectories that keep the robot on smooth terrains
-		critics.push_back(&path_costs_); // prefers trajectories on global path
-
-		// Create a vector of TrajectorySampleGenerator pointers
-		// (generators other than the first are fallback generators)
-		std::vector<base_local_planner::TrajectorySampleGenerator*> generators_list;
-
-		// Append the previously created generator to the list
-    	generators_list.push_back(&generator_);
-
-		// Initialize the scored sampling planner
-    	scored_sampling_planner_ = base_local_planner::SimpleScoredSamplingPlanner(generators_list, critics);
-
 		// Find best trajectory by sampling and scoring the samples
     	std::vector<base_local_planner::Trajectory> all_explored;
     	scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
@@ -164,6 +164,9 @@ namespace dwa_ext_local_planner
 
 		// Print the cost associated with the best trajectory
 		// std::cout << result_traj_.xv_ << '\n';
+
+		// Debrief stateful scoring functions
+    	oscillation_costs_.updateOscillationFlags(pos, &result_traj_, planner_util_->getCurrentLimits().min_vel_trans);
 
 		// Check if the planner succeeded in finding a valid plan
 		if (result_traj_.cost_ < 0.0)
@@ -195,7 +198,8 @@ namespace dwa_ext_local_planner
       Eigen::Vector3f vel,
       Eigen::Vector3f vel_samples)
 	{
-    	// oscillation_costs_.resetOscillationFlags();
+    	oscillation_costs_.resetOscillationFlags();
+
     	base_local_planner::Trajectory traj;
     	geometry_msgs::PoseStamped goal_pose;
 		planner_util_->getGoal(goal_pose);

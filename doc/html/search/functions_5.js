@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['traversabilitycostfunction_26',['TraversabilityCostFunction',['../classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#a4690e1e4ec42e48694bc4d12cc9566da',1,'dwa_ext_local_planner::TraversabilityCostFunction']]]
+  ['reconfigure_32',['reconfigure',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#a815e383a6c04e83218fac2d8e7fd5b23',1,'dwa_ext_local_planner::DWAExtPlanner']]]
 ];

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['predictrectangles_22',['predictRectangles',['../classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ad3044e658c7d2ca0ecf73a14ba859b6c',1,'dwa_ext_local_planner::TraversabilityCostFunction']]],
-  ['prepare_23',['prepare',['../classdwa__ext__local__planner_1_1TraversabilityCostFunction.html#ab0fb90175f02a68c5b1e7330e6722732',1,'dwa_ext_local_planner::TraversabilityCostFunction']]]
+  ['initialize_28',['initialize',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#a526259fdbd6539a946c17d5aba706fd7',1,'dwa_ext_local_planner::DWAExtPlanner::initialize()'],['../classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a60aae31088640ececae59829e5bce7b8',1,'dwa_ext_local_planner::DWAExtPlannerROS::initialize()']]],
+  ['isgoalreached_29',['isGoalReached',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#a23125877e2647e6fece27438c64d751a',1,'dwa_ext_local_planner::DWAExtPlanner::isGoalReached()'],['../classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3',1,'dwa_ext_local_planner::DWAExtPlannerROS::isGoalReached()']]]
 ];

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['initialize_20',['initialize',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#a526259fdbd6539a946c17d5aba706fd7',1,'dwa_ext_local_planner::DWAExtPlanner::initialize()'],['../classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a60aae31088640ececae59829e5bce7b8',1,'dwa_ext_local_planner::DWAExtPlannerROS::initialize()']]],
-  ['isgoalreached_21',['isGoalReached',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#a23125877e2647e6fece27438c64d751a',1,'dwa_ext_local_planner::DWAExtPlanner::isGoalReached()'],['../classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3',1,'dwa_ext_local_planner::DWAExtPlannerROS::isGoalReached()']]]
+  ['getacclimits_26',['getAccLimits',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#aea745aa78f999d9075cd841fe7775a5f',1,'dwa_ext_local_planner::DWAExtPlanner']]],
+  ['getsimperiod_27',['getSimPeriod',['../classdwa__ext__local__planner_1_1DWAExtPlanner.html#a5a8c82451f646a5b7a1915d09fb148a8',1,'dwa_ext_local_planner::DWAExtPlanner']]]
 ];
