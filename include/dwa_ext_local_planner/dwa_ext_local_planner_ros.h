@@ -66,13 +66,15 @@ namespace dwa_ext_local_planner{
        * @param orig_global_plan The plan to pass to the controller
        * @return True if the plan was updated successfully, false otherwise
        */
-      bool setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan);
+      bool setPlan(
+        const std::vector<geometry_msgs::PoseStamped>& orig_global_plan);
 
       /**
-       * @brief Given the current position, orientation, and velocity of the robot,
-       * compute velocity commands to send to the base
+       * @brief Given the current position, orientation, and velocity of the
+       * robot, compute velocity commands to send to the base
        * 
-       * @param cmd_vel Will be filled with the velocity command to be passed to the robot base
+       * @param cmd_vel Will be filled with the velocity command to be passed
+       * to the robot base
        * @return True if a valid trajectory was found, false otherwise
        */
       bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);

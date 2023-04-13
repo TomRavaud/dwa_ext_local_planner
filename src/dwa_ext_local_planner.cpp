@@ -3,7 +3,9 @@
 
 namespace dwa_ext_local_planner
 {	
-	DWAExtPlanner::DWAExtPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util) :
+	DWAExtPlanner::DWAExtPlanner(
+		std::string name,
+		base_local_planner::LocalPlannerUtil *planner_util):
 		planner_util_(planner_util),
 		path_costs_(planner_util->getCostmap())
 	{
@@ -12,12 +14,14 @@ namespace dwa_ext_local_planner
 		// servers' names
 		ros::NodeHandle private_nh("~/" + name);
 
-		// Define a string variable to store the name of the controller frequency parameter
+		// Define a string variable to store the name of the controller
+		// frequency parameter
 		std::string controller_frequency_param_name;
 		
 		// Get the controller frequency and set the simulation period
 		double controller_frequency {};
-		private_nh.getParam("/move_base/controller_frequency", controller_frequency);
+		private_nh.getParam("/move_base/controller_frequency",
+							controller_frequency);
 		sim_period_ = 1.0 / controller_frequency;
 
 		ROS_INFO("Sim period is set to %.2f", sim_period_);
@@ -38,7 +42,7 @@ namespace dwa_ext_local_planner
 		critics.push_back(&oscillation_costs_);
 
 		// Prefers trajectories that keep the robot on smooth terrains
-		// critics.push_back(&traversability_costs_);
+		critics.push_back(&traversability_costs_);
 
 		// Prefers trajectories on global path
 		critics.push_back(&path_costs_);
@@ -51,7 +55,9 @@ namespace dwa_ext_local_planner
     	generators_list.push_back(&generator_);
 
 		// Initialize the scored sampling planner
-    	scored_sampling_planner_ = base_local_planner::SimpleScoredSamplingPlanner(generators_list, critics);
+    	scored_sampling_planner_ =
+			base_local_planner::SimpleScoredSamplingPlanner(generators_list,
+															critics);
 	}
 
 	DWAExtPlanner::~DWAExtPlanner() {}
@@ -65,6 +71,14 @@ namespace dwa_ext_local_planner
         	config.angular_sim_granularity,
         	config.use_dwa,
         	sim_period_);
+
+		// Set the parameters of the traversability trajectory generator
+		generator_traversability_.setParameters(
+			5.5,
+			0.2,
+			config.angular_sim_granularity,
+			config.use_dwa,
+			sim_period_);
 		
 		// Set the parameters of the trajectory generator
       	limits_.max_vel_trans = config.max_vel_trans;
@@ -85,11 +99,31 @@ namespace dwa_ext_local_planner
       	limits_.trans_stopped_vel = config.trans_stopped_vel;
       	limits_.theta_stopped_vel = config.theta_stopped_vel;
 
+		// Set the parameters of the trajectory generator
+      	limits_traversability_.max_vel_trans = 1.0;
+      	limits_traversability_.min_vel_trans = 1.0;
+      	limits_traversability_.max_vel_x = 0.5;
+      	limits_traversability_.min_vel_x = 0.5;
+      	limits_traversability_.max_vel_y = 0.0;
+      	limits_traversability_.min_vel_y = 0.0;
+      	limits_traversability_.max_vel_theta = 0.3;
+      	limits_traversability_.min_vel_theta = 0.0;
+      	limits_traversability_.acc_lim_x = 3.0;
+      	limits_traversability_.acc_lim_y = 100.0;
+      	limits_traversability_.acc_lim_theta = 6.0;
+      	limits_traversability_.acc_lim_trans = 3.0;
+      	limits_traversability_.xy_goal_tolerance = 0.5;
+      	limits_traversability_.yaw_goal_tolerance = 0.1;
+      	limits_traversability_.prune_plan = config.prune_plan;
+      	limits_traversability_.trans_stopped_vel = config.trans_stopped_vel;
+      	limits_traversability_.theta_stopped_vel = config.theta_stopped_vel;
+
 		// Reconfigure the planner util
 		planner_util_->reconfigureCB(limits_, config.restore_defaults);
 
-		oscillation_costs_.setOscillationResetDist(config.oscillation_reset_dist,
-												   config.oscillation_reset_angle);
+		oscillation_costs_.setOscillationResetDist(
+			config.oscillation_reset_dist,
+			config.oscillation_reset_angle);
 
 		// Store the new configuration
 		config_ = config;
@@ -97,7 +131,8 @@ namespace dwa_ext_local_planner
 		ROS_INFO("Reconfiguration");
 	}
 
-	bool DWAExtPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan)
+	bool DWAExtPlanner::setPlan(
+		const std::vector<geometry_msgs::PoseStamped>& orig_global_plan)
 	{
 		// Store the global plan
 		planner_util_->setPlan(orig_global_plan);
@@ -110,13 +145,17 @@ namespace dwa_ext_local_planner
 		return true;
 	}
 
-	base_local_planner::Trajectory DWAExtPlanner::computeVelocityCommands(geometry_msgs::PoseStamped current_pose, geometry_msgs::Twist &cmd_vel)
+	base_local_planner::Trajectory DWAExtPlanner::computeVelocityCommands(
+		geometry_msgs::PoseStamped current_pose,
+		geometry_msgs::Twist &cmd_vel)
 	{
 		// Get the current time
-		auto time_start = std::chrono::high_resolution_clock::now();	
+		auto time_start { std::chrono::high_resolution_clock::now() };	
 		
 		// Number of trajectories to sample
-		Eigen::Vector3f vsamples(config_.vx_samples, config_.vy_samples, config_.vth_samples);
+		Eigen::Vector3f vsamples(config_.vx_samples,
+								 config_.vy_samples,
+								 config_.vth_samples);
 
 		// Read the current odometry message on the odometry topic
 		// In fact we get the pose and the velocity of the robot expressed
@@ -125,21 +164,16 @@ namespace dwa_ext_local_planner
 		// frame of the base) and the pose is set to zero
 		nav_msgs::Odometry odom;
 		odom_helper_.getOdom(odom);
-
-		// Set the current pose of the robot
-		// Eigen::Vector3f pos(odom.pose.pose.position.x,
-		// 					odom.pose.pose.position.y,
-		// 					tf2::getYaw(odom.pose.pose.orientation));	
-
-		Eigen::Vector3f pos(current_pose.pose.position.x,
-							current_pose.pose.position.y,
-							tf2::getYaw(current_pose.pose.orientation));
-
 		
+		// Get the current pose of the robot in the odometry frame
+		Eigen::Vector3f pos(current_pose.pose.position.x,
+						    current_pose.pose.position.y,
+						    tf2::getYaw(current_pose.pose.orientation));
+
 		// Set the current velocity of the robot
     	Eigen::Vector3f vel(odom.twist.twist.linear.x,
-							odom.twist.twist.linear.y,
-							odom.twist.twist.angular.z);
+						    odom.twist.twist.linear.y,
+						    odom.twist.twist.angular.z);
 		
 		// Set the goal position
 		geometry_msgs::PoseStamped goal_pose;
@@ -148,30 +182,56 @@ namespace dwa_ext_local_planner
 							 goal_pose.pose.position.y,
 							 tf2::getYaw(goal_pose.pose.orientation));
 
-		// Initialize the trajectory generator given the current state of the robot
+		// Initialize the trajectory generator given the current
+		// state of the robot
 		generator_.initialise(pos, vel, goal, &limits_, vsamples, false);
+		
+		// Set the current pose of the robot in the robot frame
+		Eigen::Vector3f pos_robot_frame { 0.0, 0.0, 0.0 };	
+
+		// Set a smaller number of trajectories on which to predict the
+		// traversability cost
+		Eigen::Vector3f vsamples_traversability { 1, 1, 6 };
+
+		// Initialize the traversability trajectory generator given the current
+		// state of the robot
+		generator_traversability_.initialise(pos_robot_frame,
+											 vel,
+											 goal,
+											 &limits_traversability_,
+											 vsamples_traversability,
+											 false);
 
 		// Predict the cost of the rectangles
-		// traversability_costs_.predictRectangles(generator_);
+		// std::vector<base_local_planner::Trajectory> all_explored_traversability;
+		// traversability_costs_.predictRectangles(generator_traversability_,
+		// 										&all_explored_traversability);
+		traversability_costs_.predictRectangles(generator_traversability_,
+												NULL);
 
 		// Find best trajectory by sampling and scoring the samples
-    	std::vector<base_local_planner::Trajectory> all_explored;
-    	scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
+    	// std::vector<base_local_planner::Trajectory> all_explored;
+    	// scored_sampling_planner_.findBestTrajectory(result_traj_,
+		// 											&all_explored);
+    	scored_sampling_planner_.findBestTrajectory(result_traj_, NULL);
 
-		ROS_INFO("Number of trajectories sampled: %d", static_cast<int>(all_explored.size()));
+		// ROS_INFO("Number of trajectories sampled: %d",
+		// 		 static_cast<int>(all_explored.size()));
 
-		// traversability_costs_.displayTrajectoriesAndCosts(all_explored);
-
-		// Print the cost associated with the best trajectory
-		// std::cout << result_traj_.xv_ << '\n';
+		// traversability_costs_.displayTrajectoriesAndCosts(
+		// 	all_explored_traversability);
 
 		// Debrief stateful scoring functions
-    	oscillation_costs_.updateOscillationFlags(pos, &result_traj_, planner_util_->getCurrentLimits().min_vel_trans);
+    	oscillation_costs_.updateOscillationFlags(
+			pos,
+			&result_traj_,
+			planner_util_->getCurrentLimits().min_vel_trans);
 
 		// Check if the planner succeeded in finding a valid plan
 		if (result_traj_.cost_ < 0.0)
 		{
-			ROS_WARN("The local planner failed to find a valid plan. Velocity set to zero.");
+			ROS_WARN("The local planner failed to find a valid plan.\
+					 Velocity set to zero.");
 			cmd_vel.linear.x = 0.0;
 			cmd_vel.linear.y = 0.0;
 			cmd_vel.angular.z = 0.0;
@@ -183,10 +243,10 @@ namespace dwa_ext_local_planner
 		cmd_vel.angular.z = result_traj_.thetav_;
 
 		// Get the current time
-		auto time_stop = std::chrono::high_resolution_clock::now();
+		auto time_stop { std::chrono::high_resolution_clock::now() };
 
 		// Calculate and display the time taken by the planner
-		std::chrono::duration<double> time_taken = time_stop - time_start;
+		std::chrono::duration<double> time_taken { time_stop - time_start };
 		ROS_INFO("Time taken: %f second(s)", time_taken.count());
 		ROS_INFO("Frequency: %f Hz \n", 1.0 / time_taken.count());
 
@@ -204,25 +264,35 @@ namespace dwa_ext_local_planner
     	geometry_msgs::PoseStamped goal_pose;
 		planner_util_->getGoal(goal_pose);
 
-    	Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf2::getYaw(goal_pose.pose.orientation));
+    	Eigen::Vector3f goal(goal_pose.pose.position.x,
+							 goal_pose.pose.position.y,
+							 tf2::getYaw(goal_pose.pose.orientation));
 
-    	base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
+    	base_local_planner::LocalPlannerLimits limits =
+			planner_util_->getCurrentLimits();
 
-		Eigen::Vector3f vsamples(config_.vx_samples, config_.vy_samples, config_.vth_samples);
+		Eigen::Vector3f vsamples(config_.vx_samples,
+								 config_.vy_samples,
+								 config_.vth_samples);
 
     	generator_.initialise(pos,
-    	    vel,
-    	    goal,
-    	    &limits,
-    	    vsamples);
+    	    				  vel,
+    	    				  goal,
+    	    				  &limits,
+    	    				  vsamples);
 
     	generator_.generateTrajectory(pos, vel, vel_samples, traj);
+
     	double cost = scored_sampling_planner_.scoreTrajectory(traj, -1);
     	//if the trajectory is a legal one... the check passes
-    	if(cost >= 0) {
+    	if(cost >= 0)
     	  return true;
-    	}
-    	ROS_WARN("Invalid Trajectory %f, %f, %f, cost: %f", vel_samples[0], vel_samples[1], vel_samples[2], cost);
+		
+    	ROS_WARN("Invalid Trajectory %f, %f, %f, cost: %f",
+				 vel_samples[0],
+				 vel_samples[1],
+				 vel_samples[2],
+				 cost);
 
     	//otherwise the check fails
     	return false;

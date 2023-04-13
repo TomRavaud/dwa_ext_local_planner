@@ -23,7 +23,8 @@ namespace dwa_ext_local_planner
 
 	DWAExtPlannerROS::~DWAExtPlannerROS() {}
 
-	void DWAExtPlannerROS::callbackReconfigure(DWAExtPlannerConfig &config, uint32_t level)
+	void DWAExtPlannerROS::callbackReconfigure(DWAExtPlannerConfig &config,
+											   uint32_t level)
 	{	
 		// Reconfigure the planner
 		dwa_ext_planner_->reconfigure(config);
@@ -31,7 +32,9 @@ namespace dwa_ext_local_planner
 		ROS_INFO("Reconfiguration");
 	}
 
-	void DWAExtPlannerROS::initialize(std::string name, tf2_ros::Buffer *tf, costmap_2d::Costmap2DROS *costmap_ros)
+	void DWAExtPlannerROS::initialize(std::string name,
+									  tf2_ros::Buffer *tf,
+									  costmap_2d::Costmap2DROS *costmap_ros)
 	{
 		begin = ros::Time::now(); 
 
@@ -48,8 +51,10 @@ namespace dwa_ext_local_planner
 			costmap_ros_ = costmap_ros;
 			tf_ = tf;
 			
-			ROS_INFO("Costmap global frame is %s", costmap_ros_->getGlobalFrameID().c_str());
-			ROS_INFO("Costmap local frame is %s", costmap_ros_->getBaseFrameID().c_str());
+			ROS_INFO("Costmap global frame is %s",
+					 costmap_ros_->getGlobalFrameID().c_str());
+			ROS_INFO("Costmap local frame is %s",
+					 costmap_ros_->getBaseFrameID().c_str());
 			
 			// Initialize the local planner util
 			planner_util_.initialize(tf,
@@ -57,10 +62,13 @@ namespace dwa_ext_local_planner
 									costmap_ros->getGlobalFrameID());
 
 			// Create the local planner
-			dwa_ext_planner_ = boost::shared_ptr<DWAExtPlanner>(new DWAExtPlanner(name, &planner_util_));
+			dwa_ext_planner_ = boost::shared_ptr<DWAExtPlanner>(
+				new DWAExtPlanner(name, &planner_util_));
 
 			// Define a dynamic reconfigure server
-			config_server_ = new dynamic_reconfigure::Server<DWAExtPlannerConfig>(private_nh);
+			config_server_ =
+				new dynamic_reconfigure::Server<DWAExtPlannerConfig>(
+					private_nh);
 
 			// Define a callback function called each time the server gets a
 			// reconfiguration request
@@ -71,10 +79,14 @@ namespace dwa_ext_local_planner
   			config_server_->setCallback(callback_reconfigure);
 
 			// Advertise the global plan publisher
-			global_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
+			global_plan_pub_ = private_nh.advertise<nav_msgs::Path>(
+				"global_plan",
+				1);
 
 			// Advertise the local plan publisher
-			local_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
+			local_plan_pub_ = private_nh.advertise<nav_msgs::Path>(
+				"local_plan",
+				1);
 
 			// Allow to read the odometry topic
 			odom_helper_.setOdomTopic(odom_topic_);
@@ -86,11 +98,13 @@ namespace dwa_ext_local_planner
 		}
 		else
 		{
-			ROS_WARN("This planner has already been initialized, doing nothing.");
+			ROS_WARN("This planner has already been initialized,\
+					 doing nothing.");
 		}
 	}
 
-	bool DWAExtPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped> &orig_global_plan)
+	bool DWAExtPlannerROS::setPlan(
+		const std::vector<geometry_msgs::PoseStamped> &orig_global_plan)
 	{
 		// Check if the plugin has been initialized
 		if (!initialized_)
@@ -99,21 +113,17 @@ namespace dwa_ext_local_planner
 			return false;
 		}
 
-		// The global planner sends the plan to follow once the goal has been given
+		// The global planner sends the plan to follow once the goal has
+		// been given
 		ROS_INFO("Got new plan");
-
-		// When we get a new plan, we also want to clear any latch we may have on goal tolerances
-    	// latched_stop_rotate_controller_.resetLatching();
 
 		dwa_ext_planner_->setPlan(orig_global_plan);
 		
-		// Set the global path preference cost function
-		// path_costs_.setTargetPoses(orig_global_plan);
-
 		// Publish the plan for visualization purposes
 		base_local_planner::publishPlan(orig_global_plan, global_plan_pub_);
 
-		//when we get a new plan, we also want to clear any latch we may have on goal tolerances
+		// When we get a new plan, we also want to clear any latch we may have
+		// on goal tolerances
     	latched_stop_rotate_controller_.resetLatching();
 
 		// Get the global pose
@@ -129,7 +139,8 @@ namespace dwa_ext_local_planner
 		return true;
 	}
 
-	bool DWAExtPlannerROS::computeVelocityCommands(geometry_msgs::Twist &cmd_vel)
+	bool DWAExtPlannerROS::computeVelocityCommands(
+		geometry_msgs::Twist &cmd_vel)
 	{
 		// Check if the plugin has been initialized
 		if (!initialized_)
@@ -141,7 +152,9 @@ namespace dwa_ext_local_planner
 		// Get the current pose of the robot
 		costmap_ros_->getRobotPose(current_pose_);
 		
-		if (latched_stop_rotate_controller_.isPositionReached(&planner_util_, current_pose_))
+		if (latched_stop_rotate_controller_.isPositionReached(
+			&planner_util_,
+			current_pose_))
 		{
     	  return latched_stop_rotate_controller_.computeVelocityCommandsStopRotate(
     	      cmd_vel,
@@ -150,12 +163,17 @@ namespace dwa_ext_local_planner
     	      &planner_util_,
     	      odom_helper_,
     	      current_pose_,
-    	      [this](auto pos, auto vel, auto vel_samples){ return dwa_ext_planner_->checkTrajectory(pos, vel, vel_samples); });
+    	      [this](auto pos, auto vel, auto vel_samples)
+			  { return dwa_ext_planner_->checkTrajectory(pos,
+			  											 vel,
+														 vel_samples); });
     	}
 		else
 		{
 			// Compute the velocity command to send to the base
-			base_local_planner::Trajectory result_traj = dwa_ext_planner_->computeVelocityCommands(current_pose_, cmd_vel);
+			base_local_planner::Trajectory result_traj =
+				dwa_ext_planner_->computeVelocityCommands(current_pose_,
+														  cmd_vel);
 
 			// Create the local plan
 			std::vector<geometry_msgs::PoseStamped> local_plan;
@@ -197,7 +215,9 @@ namespace dwa_ext_local_planner
 		ROS_INFO_THROTTLE(5, "Reaching the goal"); 
 		
 		// Check if the goal has been reached (position and orientation)
-		if (latched_stop_rotate_controller_.isGoalReached(&planner_util_, odom_helper_, current_pose_))
+		if (latched_stop_rotate_controller_.isGoalReached(&planner_util_,
+														  odom_helper_,
+														  current_pose_))
 		{
 			ROS_INFO("Reached goal"); 
 			return true; 

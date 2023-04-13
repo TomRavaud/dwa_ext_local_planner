@@ -69,8 +69,8 @@ target_link_libraries(dwa_ext_local_planner
    ${TORCH_LIBRARIES}
 )
 
-# Set the optimization level to O2
-target_compile_options(dwa_ext_local_planner PRIVATE -O2)
+# Set the optimization level to O2 and set a specific version of C++ (C++17)
+target_compile_options(dwa_ext_local_planner PRIVATE -O2 -std=c++17)
 
 
 # install(TARGETS dwa_ext_local_planner

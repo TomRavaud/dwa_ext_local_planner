@@ -108,53 +108,54 @@ $(function() {
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;      <span class="keywordtype">void</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a60aae31088640ececae59829e5bce7b8">initialize</a>(std::string name, tf2_ros::Buffer* tf,</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;                      costmap_2d::Costmap2DROS* costmap_ros);</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a4a2f91d411c498a21c1b489cbb1952e1">setPlan</a>(<span class="keyword">const</span> std::vector&lt;geometry_msgs::PoseStamped&gt;&amp; orig_global_plan);</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#aed5643ceeffba289a71ec15ff4428647">computeVelocityCommands</a>(geometry_msgs::Twist&amp; cmd_vel);</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3">isGoalReached</a>();</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;      <span class="keywordtype">void</span> callbackReconfigure(DWAExtPlannerConfig &amp;config, uint32_t level);</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;      ros::Time begin;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a4a2f91d411c498a21c1b489cbb1952e1">setPlan</a>(</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        <span class="keyword">const</span> std::vector&lt;geometry_msgs::PoseStamped&gt;&amp; orig_global_plan);</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#aed5643ceeffba289a71ec15ff4428647">computeVelocityCommands</a>(geometry_msgs::Twist&amp; cmd_vel);</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;      <span class="keywordtype">bool</span> <a class="code" href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3">isGoalReached</a>();</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;      <span class="keywordtype">void</span> callbackReconfigure(DWAExtPlannerConfig &amp;config, uint32_t level);</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;      <span class="comment">// The trajectory controller</span></div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;      boost::shared_ptr&lt;DWAExtPlanner&gt; dwa_ext_planner_;</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;      <span class="comment">// Local cost map attribute</span></div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;      costmap_2d::Costmap2DROS* costmap_ros_;</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;      <span class="comment">// Pointer to the transform listener</span></div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;      tf2_ros::Buffer* tf_;</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;      <span class="comment">// To know if the local planner has been initialized or not</span></div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;      <span class="keywordtype">bool</span> initialized_;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;      <span class="comment">// Pointer to the dynamic reconfigure server</span></div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;      dynamic_reconfigure::Server&lt;DWAExtPlannerConfig&gt; *config_server_;</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;      <span class="comment">// Create a publisher to publish the global plan</span></div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;      ros::Publisher global_plan_pub_;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;      <span class="comment">// Create a publisher to publish the local plan</span></div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;      ros::Publisher local_plan_pub_;</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;            base_local_planner::LocalPlannerUtil planner_util_;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;      ros::Time begin;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160; </div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;      <span class="comment">// The trajectory controller</span></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;      boost::shared_ptr&lt;DWAExtPlanner&gt; dwa_ext_planner_;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;      <span class="comment">// Local cost map attribute</span></div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;      costmap_2d::Costmap2DROS* costmap_ros_;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;      <span class="comment">// Pointer to the transform listener</span></div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;      tf2_ros::Buffer* tf_;</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160; </div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;      <span class="comment">// To know if the local planner has been initialized or not</span></div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;      <span class="keywordtype">bool</span> initialized_;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;      <span class="comment">// Pointer to the dynamic reconfigure server</span></div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;      dynamic_reconfigure::Server&lt;DWAExtPlannerConfig&gt; *config_server_;</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;      <span class="comment">// Create a publisher to publish the global plan</span></div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;      ros::Publisher global_plan_pub_;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160; </div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;      <span class="comment">// Create a publisher to publish the local plan</span></div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;      ros::Publisher local_plan_pub_;</div>
 <div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;      <span class="comment">// Create a latch stop rotate controller object</span></div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;      base_local_planner::LatchedStopRotateController latched_stop_rotate_controller_;</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;      <span class="comment">// Define variables to help us to read the odometry topic</span></div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;      base_local_planner::OdometryHelperRos odom_helper_;</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;      std::string odom_topic_ { <span class="stringliteral">&quot;odometry/filtered&quot;</span> };</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;      <span class="comment">// Define a variable to store the current pose of the robot</span></div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;      geometry_msgs::PoseStamped current_pose_;</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  };</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;};</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160; </div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;            base_local_planner::LocalPlannerUtil planner_util_;</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160; </div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;      <span class="comment">// Create a latch stop rotate controller object</span></div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;      base_local_planner::LatchedStopRotateController latched_stop_rotate_controller_;</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160; </div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;      <span class="comment">// Define variables to help us to read the odometry topic</span></div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;      base_local_planner::OdometryHelperRos odom_helper_;</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;      std::string odom_topic_ { <span class="stringliteral">&quot;odometry/filtered&quot;</span> };</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160; </div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;      <span class="comment">// Define a variable to store the current pose of the robot</span></div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;      geometry_msgs::PoseStamped current_pose_;</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;  };</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;};</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160; </div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_a3452a0dd068d90befca8dd8acc0fd4c3"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#a3452a0dd068d90befca8dd8acc0fd4c3">dwa_ext_local_planner::DWAExtPlannerROS::isGoalReached</a></div><div class="ttdeci">bool isGoalReached()</div><div class="ttdoc">Check if the goal pose has been achieved.</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlannerROS_html_ad36b0e857072bd09873656e6a3932c91"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlannerROS.html#ad36b0e857072bd09873656e6a3932c91">dwa_ext_local_planner::DWAExtPlannerROS::DWAExtPlannerROS</a></div><div class="ttdeci">DWAExtPlannerROS()</div><div class="ttdoc">Constructor for DWAExtPlannerROS wrapper.</div></div>

@@ -65,7 +65,8 @@ namespace dwa_ext_local_planner{
        * @param name The name to give this instance of the trajectory planner
        * @param planner_util
        */
-      DWAExtPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util);
+      DWAExtPlanner(std::string name,
+                    base_local_planner::LocalPlannerUtil *planner_util);
 
       /**
        * @brief Destroy the DWAExtPlanner object
@@ -97,16 +98,20 @@ namespace dwa_ext_local_planner{
        * @param orig_global_plan The plan to pass to the controller
        * @return True if the plan was updated successfully, false otherwise
        */
-      bool setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan);
+      bool setPlan(
+        const std::vector<geometry_msgs::PoseStamped>& orig_global_plan);
 
       /**
-       * @brief Given the current position, orientation, and velocity of the robot,
-       * compute velocity commands to send to the base
+       * @brief Given the current position, orientation, and velocity of the
+       * robot, compute velocity commands to send to the base
        * 
-       * @param cmd_vel Will be filled with the velocity command to be passed to the robot base
+       * @param cmd_vel Will be filled with the velocity command to be passed
+       * to the robot base
        * @return True if a valid trajectory was found, false otherwise
        */
-      base_local_planner::Trajectory computeVelocityCommands(geometry_msgs::PoseStamped current_pose, geometry_msgs::Twist& cmd_vel);
+      base_local_planner::Trajectory computeVelocityCommands(
+        geometry_msgs::PoseStamped current_pose,
+        geometry_msgs::Twist& cmd_vel);
 
       /**
        * @brief Check if the goal pose has been achieved
@@ -120,14 +125,14 @@ namespace dwa_ext_local_planner{
        * 
        * @return double 
        */
-      double getSimPeriod() {return sim_period_;}
+      inline double getSimPeriod() { return sim_period_; }
 
       /**
        * @brief Get the acceleration limites
        * 
        * @return Eigen::Vector3f 
        */
-      Eigen::Vector3f getAccLimits() {return limits_.getAccLimits();}
+      inline Eigen::Vector3f getAccLimits() { return limits_.getAccLimits(); }
 
       /**
        * @brief Check if a trajectory is valid (ie has a positive cost)
@@ -138,7 +143,9 @@ namespace dwa_ext_local_planner{
        * @return true 
        * @return false 
        */
-      bool checkTrajectory(Eigen::Vector3f pos, Eigen::Vector3f vel, Eigen::Vector3f vel_samples);
+      bool checkTrajectory(Eigen::Vector3f pos,
+                           Eigen::Vector3f vel,
+                           Eigen::Vector3f vel_samples);
 
     private:
 
@@ -146,6 +153,9 @@ namespace dwa_ext_local_planner{
 
       // Define a trajectory generator
       base_local_planner::SimpleTrajectoryGenerator generator_;
+
+      // Define a trajectory generator for traversability analysis
+      base_local_planner::SimpleTrajectoryGenerator generator_traversability_;
 
       // Define the traversability cost function
       dwa_ext_local_planner::TraversabilityCostFunction traversability_costs_;
@@ -155,7 +165,8 @@ namespace dwa_ext_local_planner{
       // Define the global path preference cost function
       base_local_planner::MapGridCostFunction path_costs_;
 
-      // Define the scored sampling planner that will be used to associate costs to trajectories
+      // Define the scored sampling planner that will be used to associate
+      // costs to trajectories
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
 
       // Define a variable to store the best trajectory
@@ -172,6 +183,10 @@ namespace dwa_ext_local_planner{
 
       // Define a variable to store the local planner limits
 		  base_local_planner::LocalPlannerLimits limits_;
+      
+      // Define a variable to store the local planner limits for traversability
+      // analysis
+      base_local_planner::LocalPlannerLimits limits_traversability_;
       
       // Create a local planner util object
       base_local_planner::LocalPlannerUtil *planner_util_;
