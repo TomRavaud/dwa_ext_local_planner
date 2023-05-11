@@ -72,14 +72,40 @@ target_link_libraries(dwa_ext_local_planner
 # Set the optimization level to O2 and set a specific version of C++ (C++17)
 target_compile_options(dwa_ext_local_planner PRIVATE -O2 -std=c++17)
 
+# Declare a C++ library
+add_library(depth
+  src/depth.cpp
+)
 
-# install(TARGETS dwa_ext_local_planner
-#        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-#        )
+## Wrap the C++ library in a Python module ##
+# Build a shared library containing the Python module
+find_package(PythonLibs REQUIRED)
+find_package(Boost REQUIRED COMPONENTS python)
 
-# install(FILES lp_plugin.xml
-#     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+include_directories(
+  ${PYTHON_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+)
 
+add_library(pylib SHARED bindings/pylib.cpp)
+
+# Replace the default "lib" prefix and set the installation directory for the
+# library
+set_target_properties(pylib PROPERTIES
+  PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${PYTHON_INSTALL_DIR}
+)
+
+target_link_libraries(pylib
+  ${Boost_LIBRARIES}
+  ${PYTHON_LIBRARIES}
+)
+
+
+## Declare a C++ executable
+add_executable(depth_test src/depth_test.cpp)
+
+target_link_libraries(depth_test
+  ${OpenCV_LIBS}
+  depth
+)

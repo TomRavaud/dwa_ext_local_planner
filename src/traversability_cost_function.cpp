@@ -102,7 +102,7 @@ namespace dwa_ext_local_planner {
         }
         else
         {
-            for (int i = 0; i < nb_values - 1; i++)
+            for (int i { 0 }; i < nb_values - 1; i++)
             {
                 if (vth >= vth_values_[i] && vth < vth_values_[i+1])
                 {   
@@ -352,7 +352,7 @@ namespace dwa_ext_local_planner {
             bool is_previous_pair_image_initialized = false;
 
             // Go through the points of the trajectory
-            for (int i = 0; i < traj.getPointsSize() - 1; i++)
+            for (int i { 0 }; i < traj.getPointsSize() - 1; i++)
             {
                 // Define variables to store the current pose of the robot in
                 // the robot frame
@@ -486,17 +486,17 @@ namespace dwa_ext_local_planner {
         // Initialize the index of the rectangle
         int index_rectangle { 0 };
 
-        for (int i = 0; i < nb_trajectories; i++)
+        for (int i { 0 }; i < nb_trajectories; i++)
         {
             // Get the number of rectangles in the current trajectory
             int nb_rectangles = nb_rectangles_vector[i];
 
             // Get the maximum cost
-            double cost = at::max(
+            double cost { at::max(
                 expected_costs_rectangles.narrow(
                     0,
                     index_rectangle,
-                    nb_rectangles)).item<double>();
+                    nb_rectangles)).item<double>() };
 
             cost_values_.push_back(cost);
 
