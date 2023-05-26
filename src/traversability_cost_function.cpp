@@ -7,8 +7,9 @@ namespace dwa_ext_local_planner {
         const sensor_msgs::ImageConstPtr& image)
 	{
 		// Convert and copy the ROS Image into a CvImage
+        // We use the BGR order to keep consistency with OpenCV
     	cv_ptr_ = cv_bridge::toCvCopy(image,
-                                      sensor_msgs::image_encodings::RGB8);
+                                      sensor_msgs::image_encodings::BGR8);
 	}
 
     TraversabilityCostFunction::TraversabilityCostFunction() :
@@ -129,11 +130,12 @@ namespace dwa_ext_local_planner {
     void TraversabilityCostFunction::displayTrajectoriesAndCosts(
         std::vector<base_local_planner::Trajectory> &trajs)
     {   
-        // Get the current image
+        // Get the current image (there is no need to convert it to RGB since
+        // it is the default OpenCV format)
         cv::Mat image_to_display = cv_ptr_->image.clone();
 
         // Display the costs of the trajectories
-        for (int i = 0; i < trajs.size(); i++)
+        for (int i { 0 }; i < trajs.size(); i++)
         {
             std::vector<cv::Point2d> previous_pair_image;
 
@@ -142,11 +144,15 @@ namespace dwa_ext_local_planner {
             std::vector<cv::Point> points_right;
             std::vector<cv::Point> points;
 
-            std::cout << trajs[i].xv_ << std::endl;
-            std::cout << trajs[i].yv_ << std::endl;
-            std::cout << trajs[i].thetav_ << std::endl;
+            // Create a point to store the previous position of the robot in
+            // the robot frame
+            cv::Point2d previous_point_robot;
 
-            for (int j = 0; j < trajs[i].getPointsSize(); j++)
+            // std::cout << trajs[i].xv_ << "\n";
+            // std::cout << trajs[i].yv_ << "\n";
+            // std::cout << trajs[i].thetav_ << "\n";
+
+            for (int j { 0 }; j < trajs[i].getPointsSize(); j++)
             {
                 // Define variables to store the current pose of the robot in
                 // the robot frame
@@ -221,29 +227,87 @@ namespace dwa_ext_local_planner {
                     {
                         previous_pair_image.push_back(current_pair_image[0]);
                         previous_pair_image.push_back(current_pair_image[1]);
+
+                        previous_point_robot.x = x;
+                        previous_point_robot.y = y;
+
                         continue;
                     }
 
-                    // Draw the bounding box
-                    // cv::rectangle(
-                    //     image_to_display,
-                    //     cv::Point(
-                    //         std::min(current_pair_image[0].x,
-                    //                  previous_pair_image[0].x),
-                    //         std::min(current_pair_image[0].y,
-                    //                  current_pair_image[1].y)),
-                    //     cv::Point(
-                    //         std::max(current_pair_image[1].x,
-                    //                  previous_pair_image[1].x),
-                    //         std::max(previous_pair_image[0].y,
-                    //                  previous_pair_image[1].y)),
-                    //     cv::Scalar(0, 255, 0));
+                    // Compute the distance between the current point and the
+                    // previous point
+                    double distance2 { pow(x-previous_point_robot.x, 2) +
+                                       pow(y-previous_point_robot.y, 2) };
 
-                    // Store the current pair of points as the previous pair
-                    // of points
-                    previous_pair_image.clear();
-                    previous_pair_image.push_back(current_pair_image[0]);
-                    previous_pair_image.push_back(current_pair_image[1]);
+                    if (distance2 > pow(PATCH_DISTANCE_, 2))
+                    {
+                        // Compute the coordinates of the bounding box
+                        // corners
+                        int min_x = std::min(current_pair_image[0].x,
+                                             previous_pair_image[0].x);
+                        int min_y = std::min(current_pair_image[0].y,
+                                             current_pair_image[1].y);
+                        int max_x = std::max(current_pair_image[1].x,
+                                             previous_pair_image[1].x);
+                        int max_y = std::max(previous_pair_image[0].y,
+                                             previous_pair_image[1].y);
+
+                        // Correct the dimensions of the rectangle to respect
+                        // the height-width ratio
+                        int rectangle_width { max_x - min_x };
+                        int rectangle_height { max_y - min_y };
+
+                        int min_x_rectangle, min_y_rectangle, max_x_rectangle, max_y_rectangle;
+                        
+                        if (rectangle_width < RECTANGLE_RATIO_*rectangle_height)
+                        {   
+                            // Height of the rectangular regions to be
+                            // eliminated on the right and left of the
+                            // patch
+                            int delta = (rectangle_height - rectangle_width/RECTANGLE_RATIO_)/2;
+
+                            // Coordinates of the vertices of the patch to keep
+                            min_y_rectangle = min_y + delta;
+                            max_y_rectangle = max_y - delta;
+                            min_x_rectangle = min_x;
+                            max_x_rectangle = max_x;
+                        }
+
+                        else
+                        {
+                            // Width of the rectangular regions to be
+                            // eliminated at the top and bottom of the
+                            // patch
+                            int delta = (rectangle_width - RECTANGLE_RATIO_*rectangle_height)/2;
+                            
+                            // Coordinates of the vertices of the patch to keep
+                            min_x_rectangle = min_x + delta;
+                            max_x_rectangle = max_x - delta;
+                            min_y_rectangle = min_y;
+                            max_y_rectangle = max_y;
+                        }
+
+                        // Draw the box
+                        // cv::rectangle(
+                        //     image_to_display,
+                        //     cv::Point(
+                        //         min_x_rectangle,
+                        //         min_y_rectangle),
+                        //     cv::Point(
+                        //         max_x_rectangle,
+                        //         max_y_rectangle),
+                        //     cv::Scalar(0, 255, 0));
+
+                        // Store the current pair of points as the previous pair
+                        // of points
+                        previous_pair_image.clear();
+                        previous_pair_image.push_back(current_pair_image[0]);
+                        previous_pair_image.push_back(current_pair_image[1]);
+
+                        // Store the current point as the previous point
+                        previous_point_robot.x = x;
+                        previous_point_robot.y = y;
+                    }
                 }
             }
             std::cout << "Trajectory " << i
@@ -301,10 +365,13 @@ namespace dwa_ext_local_planner {
         auto time_start = std::chrono::high_resolution_clock::now();
 
         // Create a vector of inputs
-        std::vector<torch::jit::IValue> rectangles;
+        std::vector<torch::jit::IValue> inputs;
 
         // Create a vector to store the rectangular regions
         std::vector<at::Tensor> rectangles_vector;
+
+        // Create a vector to store the velocities
+        std::vector<at::Tensor> velocities_vector;
 
         // Create a trajectory object
 		base_local_planner::Trajectory traj;
@@ -350,6 +417,10 @@ namespace dwa_ext_local_planner {
             // Create an array to store the previous pair of points
             double previous_pair_image[4];
             bool is_previous_pair_image_initialized = false;
+
+            // Create a point to store the previous position of the robot
+            // in the robot frame
+            cv::Point2d previous_point_robot;
 
             // Go through the points of the trajectory
             for (int i { 0 }; i < traj.getPointsSize() - 1; i++)
@@ -405,7 +476,7 @@ namespace dwa_ext_local_planner {
                     current_pair_image[1].y > 0 &&
                     current_pair_image[1].y < IMAGE_H_)
                 {   
-                    // If this is the first pair of points, store it and
+                    // If it is the first pair of points, store it and
                     // continue
                     if (!is_previous_pair_image_initialized)
                     {
@@ -415,74 +486,163 @@ namespace dwa_ext_local_planner {
                         previous_pair_image[2] = current_pair_image[1].x;
                         previous_pair_image[3] = current_pair_image[1].y;
 
+                        previous_point_robot.x = x;
+                        previous_point_robot.y = y;
+
                         // Set the flag to true
                         is_previous_pair_image_initialized = true;
 
                         continue;
                     }
-                    // Get the bounding box given the two pairs of points
-                    cv::Mat rectangle_image = cv_ptr_->image(
-                        cv::Range(
-                            std::min(current_pair_image[0].y,
-                                     current_pair_image[1].y),
-                            std::max(previous_pair_image[1],
-                                     previous_pair_image[3])),
-                        cv::Range(
-                            std::min(current_pair_image[0].x,
-                                     previous_pair_image[0]),
-                            std::max(current_pair_image[1].x,
-                                     previous_pair_image[2])));
 
-                    // Resize the image
-                    cv::resize(rectangle_image,
-                               rectangle_image,
-                               cv::Size(210, 70));
+                    // Compute the distance between the current point and the
+                    // previous point
+                    double distance2 { pow(x-previous_point_robot.x, 2) +
+                                       pow(y-previous_point_robot.y, 2) };
 
-                    // Convert the image to float and set the range to [0, 1]
-                    rectangle_image.convertTo(rectangle_image,
-                                              CV_32FC3,
-                                              1.0f / 255.0f);
 
-                    // Disable gradient computation 
-                    at::NoGradGuard no_grad;
+                    if (distance2 > pow(PATCH_DISTANCE_, 2) &&
+                        nb_rectangles < NB_RECTANGLES_MAX_)
+                    {
+                        // Compute the coordinates of the bounding box
+                        // corners
+                        int min_x = std::min(current_pair_image[0].x,
+                                             previous_pair_image[0]);
+                        int min_y = std::min(current_pair_image[0].y,
+                                             current_pair_image[1].y);
+                        int max_x = std::max(current_pair_image[1].x,
+                                             previous_pair_image[2]);
+                        int max_y = std::max(previous_pair_image[1],
+                                             previous_pair_image[3]);
 
-                    // Convert the image to tensor
-                    at::Tensor rectangle_tensor = at::from_blob(
-                        rectangle_image.data,
-                        { 1,
-                          rectangle_image.rows,
-                          rectangle_image.cols,
-                          rectangle_image.channels() },
-                        at::kFloat);
-                    rectangle_tensor = rectangle_tensor.permute(
-                        { 0, 3, 1, 2 });
+                        // Correct the dimensions of the rectangle to respect
+                        // the height-width ratio
+                        int rectangle_width { max_x - min_x };
+                        int rectangle_height { max_y - min_y };
 
-                    // Make a copy of the tensor and store it in the vector
-                    rectangles_vector.push_back(rectangle_tensor.clone());
+                        int min_x_rectangle, min_y_rectangle, max_x_rectangle, max_y_rectangle;
+                        
+                        if (rectangle_width < RECTANGLE_RATIO_*rectangle_height)
+                        {   
+                            // Height of the rectangular regions to be
+                            // eliminated on the right and left of the
+                            // patch
+                            int delta = (rectangle_height - rectangle_width/RECTANGLE_RATIO_)/2;
 
-                    // Store the current pair of points as the previous pair
-                    // of points
-                    previous_pair_image[0] = current_pair_image[0].x;
-                    previous_pair_image[1] = current_pair_image[0].y;
-                    previous_pair_image[2] = current_pair_image[1].x;
-                    previous_pair_image[3] = current_pair_image[1].y;
+                            // Coordinates of the vertices of the patch to keep
+                            min_y_rectangle = min_y + delta;
+                            max_y_rectangle = max_y - delta;
+                            min_x_rectangle = min_x;
+                            max_x_rectangle = max_x;
+                        }
 
-                    // Increment the number of rectangles
-                    nb_rectangles++;
+                        else
+                        {
+                            // Width of the rectangular regions to be
+                            // eliminated at the top and bottom of the
+                            // patch
+                            int delta = (rectangle_width - RECTANGLE_RATIO_*rectangle_height)/2;
+                            
+                            // Coordinates of the vertices of the patch to keep
+                            min_x_rectangle = min_x + delta;
+                            max_x_rectangle = max_x - delta;
+                            min_y_rectangle = min_y;
+                            max_y_rectangle = max_y;
+                        }
+
+                        // Get the box given the two pairs of points
+                        cv::Mat rectangle_image = cv_ptr_->image(
+                            cv::Range(
+                                min_y_rectangle,
+                                max_y_rectangle),
+                            cv::Range(
+                                min_x_rectangle,
+                                max_x_rectangle));
+
+                        // Resize the image
+                        cv::resize(rectangle_image,
+                                   rectangle_image,
+                                   cv::Size(210, 70));
+
+                        // Convert the BGR image to RGB
+                        cv::cvtColor(rectangle_image,
+                                     rectangle_image,
+                                     CV_BGR2RGB);
+
+                        // Convert the image to float and set the range to [0, 1]
+                        rectangle_image.convertTo(rectangle_image,
+                                                  CV_32FC3,
+                                                  1.0f / 255.0f);
+
+                        // Disable gradient computation 
+                        at::NoGradGuard no_grad;
+
+                        // Convert the image to tensor and permute the dimensions
+                        // to match the network's input shape
+                        at::Tensor rectangle_tensor = at::from_blob(
+                            rectangle_image.data,
+                            { 1,
+                              rectangle_image.rows,
+                              rectangle_image.cols,
+                              rectangle_image.channels() },
+                            at::kFloat);
+                        rectangle_tensor = rectangle_tensor.permute(
+                            { 0, 3, 1, 2 });
+
+                        // Make a copy of the tensor and store it in the vector
+                        rectangles_vector.push_back(rectangle_tensor.clone());
+
+                        velocities_vector.push_back(
+                            at::tensor({ traj.xv_ }));
+
+                        // Store the current pair of points as the previous pair
+                        // of points
+                        previous_pair_image[0] = current_pair_image[0].x;
+                        previous_pair_image[1] = current_pair_image[0].y;
+                        previous_pair_image[2] = current_pair_image[1].x;
+                        previous_pair_image[3] = current_pair_image[1].y;
+
+                        // Store the current robot position as the previous
+                        // robot position
+                        previous_point_robot.x = x;
+                        previous_point_robot.y = y;
+
+                        // Increment the number of rectangles
+                        nb_rectangles++;
+                    }
+
+                    else if (nb_rectangles == NB_RECTANGLES_MAX_)
+                        break;
                 }
             }
+            
+            // If the trajectory contains less than NB_RECTANGLES_MAX_
+            // rectangles, it will not be possible to pass the sequence
+            // of rectangles to the recurrent network
+            if (nb_rectangles < NB_RECTANGLES_MAX_)
+                ROS_WARN("The trajectory contains less than %d rectangles. "
+                         "It will not be possible to pass the sequence of "
+                         "rectangles to the recurrent network.",
+                         NB_RECTANGLES_MAX_);
+
             nb_rectangles_vector.push_back(nb_rectangles);
 		}
         // Concatenate and normalize the tensors and send them to the GPU
-        rectangles.push_back(
+        inputs.push_back(
             normalize_transform_(at::cat(rectangles_vector)).to(device_));
+        
+        // Concatenate, add a dimension and send the velocities tensor
+        // to the GPU
+        inputs.push_back(at::cat(velocities_vector).to(at::kFloat)
+            .unsqueeze_(1).to(device_));
 
         // Compute the expected costs over the bins
         at::Tensor expected_costs_rectangles;
         expected_costs_rectangles = at::mm(
-            at::softmax(model_.forward(rectangles).toTensor(), /*dim*/1),
+            at::softmax(model_.forward(inputs).toTensor(), /*dim*/1),
             bins_midpoints_);
 
+        
         // Initialize the index of the rectangle
         int index_rectangle { 0 };
 

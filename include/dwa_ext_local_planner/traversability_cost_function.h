@@ -119,10 +119,10 @@ namespace dwa_ext_local_planner {
             ros::Subscriber sub_image_;
 
             // Width of the robot
-            double L_ = 0.67;
+            double L_ { 0.67 };
 
             // Image width and height
-            const double IMAGE_W_ = 1280, IMAGE_H_ = 720;
+            const double IMAGE_W_ { 1280 }, IMAGE_H_ { 720 };
 
             // Set the tilt angle of the camera
             float alpha_ = -0.197;
@@ -164,6 +164,15 @@ namespace dwa_ext_local_planner {
             // cost values
             std::vector<double> vth_values_;
             std::vector<double> cost_values_;
+
+            // Distance the robot travels within a patch
+            const double PATCH_DISTANCE_ { 0.5 };  // [m]
+
+            // Ratio between the width and the height of a rectangle
+            const double RECTANGLE_RATIO_ { 3 };
+
+            // Maximum number of rectangles to be detected in an image
+            const int NB_RECTANGLES_MAX_ { 3 };
     };
 }
 

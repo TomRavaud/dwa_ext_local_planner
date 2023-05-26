@@ -46,8 +46,8 @@ DWAExtPlannerROS:
   goal_distance_bias: 20.0  # The weighting for how much the controller should attempt to reach its local goal, also controls speed
   occdist_scale: 0.02  # The weighting for how much the controller should attempt to avoid obstacles
   # forward_point_distance: 0.325 # The distance from the center point of the robot to place an additional scoring point, in meters
-  # stop_time_buffer: 0.2  # The amount of time that the robot must stThe absolute value of the veolicty at which to start scaling the robot's footprint, in m/sop before a collision in order for a trajectory to be considered valid in seconds
-  # scaling_speed: 0.25 # The absolute value of the veolicty at which to start scaling the robot's footprint, in m/s
+  # stop_time_buffer: 0.2  # The amount of time that the robot must stThe absolute value of the velocity at which to start scaling the robot's footprint, in m/sop before a collision in order for a trajectory to be considered valid in seconds
+  # scaling_speed: 0.25 # The absolute value of the velocity at which to start scaling the robot's footprint, in m/s
   # max_scaling_factor: 0.2 # The maximum factor to scale the robot's footprint by
 
   # Oscillation Prevention Parameters
@@ -57,4 +57,4 @@ DWAExtPlannerROS:
   Traversability:
     # image_topic: "zed_node/rgb/image_rect_color"
     image_topic: "camera1/image_raw"
-    model_definition_file: "/home/tom/Traversability-Tom/catkin_ws/src/dwa_ext_local_planner/models/resnet18/resnet18_classification.pt"
+    model_definition_file: "/home/tom/Traversability-Tom/catkin_ws/src/dwa_ext_local_planner/models/resnet18_velocity/resnet18_velocity.pt"

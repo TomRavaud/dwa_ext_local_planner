@@ -74,8 +74,8 @@ namespace dwa_ext_local_planner
 
 		// Set the parameters of the traversability trajectory generator
 		generator_traversability_.setParameters(
-			5.5,
-			0.2,
+			7,
+			0.05,
 			config.angular_sim_granularity,
 			config.use_dwa,
 			sim_period_);
@@ -106,7 +106,7 @@ namespace dwa_ext_local_planner
       	limits_traversability_.min_vel_x = 0.5;
       	limits_traversability_.max_vel_y = 0.0;
       	limits_traversability_.min_vel_y = 0.0;
-      	limits_traversability_.max_vel_theta = 0.3;
+      	limits_traversability_.max_vel_theta = 0.25;
       	limits_traversability_.min_vel_theta = 0.0;
       	limits_traversability_.acc_lim_x = 3.0;
       	limits_traversability_.acc_lim_y = 100.0;
@@ -284,7 +284,8 @@ namespace dwa_ext_local_planner
     	generator_.generateTrajectory(pos, vel, vel_samples, traj);
 
     	double cost = scored_sampling_planner_.scoreTrajectory(traj, -1);
-    	//if the trajectory is a legal one... the check passes
+
+    	// If the trajectory is a legal one... the check passes
     	if(cost >= 0)
     	  return true;
 		
@@ -294,7 +295,7 @@ namespace dwa_ext_local_planner
 				 vel_samples[2],
 				 cost);
 
-    	//otherwise the check fails
+    	// Otherwise the check fails
     	return false;
   	}
 }
