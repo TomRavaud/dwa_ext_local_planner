@@ -102,8 +102,8 @@ namespace dwa_ext_local_planner
 		// Set the parameters of the trajectory generator
       	limits_traversability_.max_vel_trans = 1.0;
       	limits_traversability_.min_vel_trans = 1.0;
-      	limits_traversability_.max_vel_x = 0.5;
-      	limits_traversability_.min_vel_x = 0.5;
+      	limits_traversability_.max_vel_x = 0.3;
+      	limits_traversability_.min_vel_x = 0.3;
       	limits_traversability_.max_vel_y = 0.0;
       	limits_traversability_.min_vel_y = 0.0;
       	limits_traversability_.max_vel_theta = 0.25;

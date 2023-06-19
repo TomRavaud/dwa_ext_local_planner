@@ -71,19 +71,202 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab1b3c7c47eeaa429ffc7e7ecb8412a17"><td class="memItemLeft" align="right" valign="top"><a id="ab1b3c7c47eeaa429ffc7e7ecb8412a17"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Depth</b> (cv::Mat depth_image)</td></tr>
-<tr class="separator:ab1b3c7c47eeaa429ffc7e7ecb8412a17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4dcfcb6baecb01d190876ab8e438fc79"><td class="memItemLeft" align="right" valign="top"><a id="a4dcfcb6baecb01d190876ab8e438fc79"></a>
-cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>computeNormals</b> ()</td></tr>
-<tr class="separator:a4dcfcb6baecb01d190876ab8e438fc79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d504a8aa032a8a5642b3aa3eadab591"><td class="memItemLeft" align="right" valign="top"><a id="a5d504a8aa032a8a5642b3aa3eadab591"></a>
-cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>getDepth</b> () const</td></tr>
+<tr class="memitem:a82e3a03308627ab4832cc8a9664d6781"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDepth.html#a82e3a03308627ab4832cc8a9664d6781">Depth</a> (cv::Mat depth, double depth_min, double depth_max)</td></tr>
+<tr class="memdesc:a82e3a03308627ab4832cc8a9664d6781"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classDepth.html">Depth</a> object.  <a href="classDepth.html#a82e3a03308627ab4832cc8a9664d6781">More...</a><br /></td></tr>
+<tr class="separator:a82e3a03308627ab4832cc8a9664d6781"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cb722ab69e97f9826c7e98706bad5a9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDepth.html#a7cb722ab69e97f9826c7e98706bad5a9">computeNormals</a> (cv::Mat K, double gradient_threshold)</td></tr>
+<tr class="memdesc:a7cb722ab69e97f9826c7e98706bad5a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate the surface normals from a depth image.  <a href="classDepth.html#a7cb722ab69e97f9826c7e98706bad5a9">More...</a><br /></td></tr>
+<tr class="separator:a7cb722ab69e97f9826c7e98706bad5a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a771b25f138b5f77866c361a48dac34"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDepth.html#a2a771b25f138b5f77866c361a48dac34">displayDepth</a> () const</td></tr>
+<tr class="memdesc:a2a771b25f138b5f77866c361a48dac34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display the depth image.  <a href="classDepth.html#a2a771b25f138b5f77866c361a48dac34">More...</a><br /></td></tr>
+<tr class="separator:a2a771b25f138b5f77866c361a48dac34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a910c9b71b013674cc645607568c714f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDepth.html#a910c9b71b013674cc645607568c714f3">displayNormals</a> () const</td></tr>
+<tr class="memdesc:a910c9b71b013674cc645607568c714f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display the surface normals.  <a href="classDepth.html#a910c9b71b013674cc645607568c714f3">More...</a><br /></td></tr>
+<tr class="separator:a910c9b71b013674cc645607568c714f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d504a8aa032a8a5642b3aa3eadab591"><td class="memItemLeft" align="right" valign="top">cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDepth.html#a5d504a8aa032a8a5642b3aa3eadab591">getDepth</a> () const</td></tr>
+<tr class="memdesc:a5d504a8aa032a8a5642b3aa3eadab591"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the depth image.  <a href="classDepth.html#a5d504a8aa032a8a5642b3aa3eadab591">More...</a><br /></td></tr>
 <tr class="separator:a5d504a8aa032a8a5642b3aa3eadab591"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac1cd7295797785d9c19b81cf6eb8ba2"><td class="memItemLeft" align="right" valign="top"><a id="aac1cd7295797785d9c19b81cf6eb8ba2"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setDepth</b> (cv::Mat depth_image)</td></tr>
-<tr class="separator:aac1cd7295797785d9c19b81cf6eb8ba2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3e5698ca932f2e7805e0a9f46e72b71"><td class="memItemLeft" align="right" valign="top">cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDepth.html#af3e5698ca932f2e7805e0a9f46e72b71">getNormals</a> () const</td></tr>
+<tr class="memdesc:af3e5698ca932f2e7805e0a9f46e72b71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the surface normals.  <a href="classDepth.html#af3e5698ca932f2e7805e0a9f46e72b71">More...</a><br /></td></tr>
+<tr class="separator:af3e5698ca932f2e7805e0a9f46e72b71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a82e3a03308627ab4832cc8a9664d6781"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82e3a03308627ab4832cc8a9664d6781">&#9670;&nbsp;</a></span>Depth()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Depth::Depth </td>
+          <td>(</td>
+          <td class="paramtype">cv::Mat&#160;</td>
+          <td class="paramname"><em>depth</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>depth_min</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>depth_max</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Construct a new <a class="el" href="classDepth.html">Depth</a> object. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">depth</td><td>The depth image </td></tr>
+    <tr><td class="paramname">depth_min</td><td>Minimum depth value the stereo camera can measure (in meters) </td></tr>
+    <tr><td class="paramname">depth_max</td><td>Maximum depth value the stereo camera can measure (in meters) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a7cb722ab69e97f9826c7e98706bad5a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cb722ab69e97f9826c7e98706bad5a9">&#9670;&nbsp;</a></span>computeNormals()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Depth::computeNormals </td>
+          <td>(</td>
+          <td class="paramtype">cv::Mat&#160;</td>
+          <td class="paramname"><em>K</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>gradient_threshold</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Estimate the surface normals from a depth image. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">K</td><td>The internal calibration matrix </td></tr>
+    <tr><td class="paramname">gradient_threshold</td><td>The threshold for the gradient magnitude to be considered valid </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2a771b25f138b5f77866c361a48dac34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a771b25f138b5f77866c361a48dac34">&#9670;&nbsp;</a></span>displayDepth()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Depth::displayDepth </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Display the depth image. </p>
+
+</div>
+</div>
+<a id="a910c9b71b013674cc645607568c714f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a910c9b71b013674cc645607568c714f3">&#9670;&nbsp;</a></span>displayNormals()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Depth::displayNormals </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Display the surface normals. </p>
+
+</div>
+</div>
+<a id="a5d504a8aa032a8a5642b3aa3eadab591"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d504a8aa032a8a5642b3aa3eadab591">&#9670;&nbsp;</a></span>getDepth()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">cv::Mat Depth::getDepth </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the depth image. </p>
+<dl class="section return"><dt>Returns</dt><dd>cv::Mat The depth image </dd></dl>
+
+</div>
+</div>
+<a id="af3e5698ca932f2e7805e0a9f46e72b71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3e5698ca932f2e7805e0a9f46e72b71">&#9670;&nbsp;</a></span>getNormals()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">cv::Mat Depth::getNormals </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the surface normals. </p>
+<dl class="section return"><dt>Returns</dt><dd>cv::Mat The surface normals </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/depth_image/<a class="el" href="depth_8h_source.html">depth.h</a></li>
 <li>src/depth.cpp</li>

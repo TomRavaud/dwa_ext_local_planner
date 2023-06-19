@@ -288,15 +288,15 @@ namespace dwa_ext_local_planner {
                         }
 
                         // Draw the box
-                        // cv::rectangle(
-                        //     image_to_display,
-                        //     cv::Point(
-                        //         min_x_rectangle,
-                        //         min_y_rectangle),
-                        //     cv::Point(
-                        //         max_x_rectangle,
-                        //         max_y_rectangle),
-                        //     cv::Scalar(0, 255, 0));
+                        cv::rectangle(
+                            image_to_display,
+                            cv::Point(
+                                min_x_rectangle,
+                                min_y_rectangle),
+                            cv::Point(
+                                max_x_rectangle,
+                                max_y_rectangle),
+                            cv::Scalar(0, 255, 0));
 
                         // Store the current pair of points as the previous pair
                         // of points
@@ -642,7 +642,6 @@ namespace dwa_ext_local_planner {
             at::softmax(model_.forward(inputs).toTensor(), /*dim*/1),
             bins_midpoints_);
 
-        
         // Initialize the index of the rectangle
         int index_rectangle { 0 };
 
@@ -651,12 +650,20 @@ namespace dwa_ext_local_planner {
             // Get the number of rectangles in the current trajectory
             int nb_rectangles = nb_rectangles_vector[i];
 
-            // Get the maximum cost
-            double cost { at::max(
-                expected_costs_rectangles.narrow(
-                    0,
-                    index_rectangle,
-                    nb_rectangles)).item<double>() };
+            double cost;
+            
+            // If we cannot assess the traversability of a trajectory,
+            // discard it by setting its cost to -1
+            if (nb_rectangles == 0)
+                cost = -1;
+
+            else
+                // Get the maximum cost
+                cost = at::max(
+                    expected_costs_rectangles.narrow(
+                        0,
+                        index_rectangle,
+                        nb_rectangles)).item<double>();
 
             cost_values_.push_back(cost);
 
