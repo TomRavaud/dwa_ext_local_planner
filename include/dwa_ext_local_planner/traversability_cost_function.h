@@ -31,6 +31,7 @@
 
 #include <chrono>
 #include <vector>
+#include <string>
 
 #include <base_local_planner/simple_trajectory_generator.h>
 
@@ -170,6 +171,11 @@ namespace dwa_ext_local_planner {
             // Choose whether to display the absolute cost color or not
             bool DISPLAY_ABSOLUTE_COST_;
             double COST_MAX_, COST_MIN_;
+
+            // How to interpolate the traversal cost values on the angular
+            // velocity
+            std::string INTERPOLATION_METHOD_;
+            double VTH_THR_;
     };
 }
 

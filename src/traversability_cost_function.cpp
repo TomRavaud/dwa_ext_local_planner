@@ -39,6 +39,10 @@ namespace dwa_ext_local_planner {
                     COST_MAX_);
         nh.getParam("/move_base/DWAExtPlannerROS/Traversability/cost_min",
                     COST_MIN_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/interpolation_method",
+                    INTERPOLATION_METHOD_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/vth_thr",
+                    VTH_THR_);
 
         // Read the name of the camera image topic
         std::string image_topic {};
@@ -132,11 +136,11 @@ namespace dwa_ext_local_planner {
         double cost {};
 
         // Interpolate the cost
-        if (vth < vth_values_[0])
+        if (vth <= vth_values_[0])
         {
             cost = cost_values_[0];
         }
-        else if (vth > vth_values_[nb_values - 1])
+        else if (vth >= vth_values_[nb_values - 1])
         {
             cost = cost_values_[nb_values - 1];
         }
@@ -144,16 +148,49 @@ namespace dwa_ext_local_planner {
         {
             for (int i { 0 }; i < nb_values - 1; i++)
             {
-                if (vth >= vth_values_[i] && vth < vth_values_[i+1])
-                {   
-                    // Set the cost as the maximum of the two neighboring
-                    // costs
-                    cost = std::max(cost_values_[i], cost_values_[i+1]);
+                double v1, v2 = vth_values_[i], vth_values_[i+1];
+                double c1, c2 = cost_values_[i], cost_values_[i+1];
+
+                if (vth == v1)
+                {
+                    cost = c1;
                     break;
+                }
+                else if (vth > v1 && vth < v2)
+                {
+                    if (INTERPOLATION_METHOD_ == "max")
+                    {
+                        // Set the cost as the maximum of the two neighboring
+                        // costs
+                        cost = std::max(c1, c2);
+                        break;
+                    }
+                    else if (INTERPOLATION_METHOD_ == "linear_threshold")
+                    {
+                        // If the trajectory is close enough to a trajectory
+                        // for which the cost is know, then use this cost
+                        if (vth < v1 + VTH_THR_)
+                        {
+                            cost = c1;
+                            break;
+                        }
+                        else if (vth > v2 - VTH_THR_)
+                        {
+                            cost = c2;
+                            break;
+                        }
+                        // Otherwise, apply a linear interpolation
+                        else
+                        {
+                            cost = (c2 - c1)/
+                                   (v2 - v1 - 2*VTH_THR_)*
+                                   (vth - v1 - VTH_THR_) + c1;
+                            break;
+                        } 
+                    }
                 }
             }
         }
-
         return cost;
     }
 

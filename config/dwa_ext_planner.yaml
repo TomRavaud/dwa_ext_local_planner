@@ -122,3 +122,9 @@ DWAExtPlannerROS:
     # Maximum and minimum cost values encountered in the training set
     cost_max: 16
     cost_min: 0
+
+    # How to interpolate the traversability cost for the remaining trajectories
+    interpolation_method: "linear_threshold"  # "max", "linear_threshold"
+
+    # Threshold for the linear interpolation on the angular velocity
+    vth_thr: 0.05
