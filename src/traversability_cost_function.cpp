@@ -20,6 +20,26 @@ namespace dwa_ext_local_planner {
         // Initialize the random number generator
         std::srand((unsigned)time(NULL));
 
+        // Load parameters from the parameter server
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/L",
+                    L_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/W",
+                    IMAGE_W_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/H",
+                    IMAGE_H_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/patch_distance",
+                    PATCH_DISTANCE_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/rectangle_ratio",
+                    RECTANGLE_RATIO_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/nb_rectangles_max",
+                    NB_RECTANGLES_MAX_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/display_absolute_cost",
+                    DISPLAY_ABSOLUTE_COST_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/cost_max",
+                    COST_MAX_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/cost_min",
+                    COST_MIN_);
+
         // Read the name of the camera image topic
         std::string image_topic {};
         nh.getParam("/move_base/DWAExtPlannerROS/Traversability/image_topic",
@@ -32,10 +52,18 @@ namespace dwa_ext_local_planner {
             &dwa_ext_local_planner::TraversabilityCostFunction::callbackImage,
             this);
 
-        // Set the translation vector
-        robot_to_cam_translation_ = (cv::Mat_<double>(3, 1) << 0.084,
-                                                               0.060,
-                                                               0.774);
+        // Load the translation vector from the robot frame to the camera
+        // frame
+        std::vector<float> robot_to_cam_translation {};
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/robot_to_cam_translation",
+            robot_to_cam_translation);
+        robot_to_cam_translation_ =
+            cv::Mat(robot_to_cam_translation).reshape(0, 3);
+
+        // Load the tilt angle of the camera
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/alpha", alpha_);
 
         // Set the rotation matrix to rotate the robot frame to the
         // camera frame
@@ -53,10 +81,10 @@ namespace dwa_ext_local_planner {
         cam_to_robot_translation_ =
             -cam_to_robot_rotation_*robot_to_cam_translation_;
 
-        // Set the internal calibration matrix
-        K_ = (cv::Mat_<double>(3, 3) << 534, 0, IMAGE_W_/2,
-                                        0, 534, IMAGE_H_/2,
-                                        0, 0, 1);
+        // Load the internal calibration matrix
+        std::vector<float> K {};
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/K", K);
+        K_ = cv::Mat(K).reshape(0, 3);
 
         // Device
         ROS_INFO("Device for NN inference is %s", device_.str().c_str());
@@ -66,12 +94,23 @@ namespace dwa_ext_local_planner {
         nh.getParam(
             "/move_base/DWAExtPlannerROS/Traversability/model_definition_file",
             model_definition_file);
-
+        
         // Load the model
         model_ = torch::jit::load(model_definition_file);
 
         // Send the model to the GPU
         model_.to(device_);
+
+        // Load the bins midpoints from the parameter server
+        std::vector<float> midpoints {};
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/bins_midpoints",
+            midpoints);
+
+        // Convert the bins midpoints to a tensor
+        bins_midpoints_ = torch::from_blob(midpoints.data(),
+                                           {(long int)std::size(midpoints), 1},
+                                           torch::kFloat32);
 
         // Send the bins midpoints to the GPU
         bins_midpoints_ = bins_midpoints_.to(device_);
@@ -133,6 +172,40 @@ namespace dwa_ext_local_planner {
         // Get the current image (there is no need to convert it to RGB since
         // it is the default OpenCV format)
         cv::Mat image_to_display = cv_ptr_->image.clone();
+
+        double cost_min, cost_max;
+
+        if (DISPLAY_ABSOLUTE_COST_)
+        {
+            // Get the minimum and maximum costs on the training set
+            cost_min = COST_MIN_;
+            cost_max = COST_MAX_;
+        }
+        else
+        {   
+            // Compute the maximum and minimum costs among the candidate
+            // trajectories
+            cost_min = COST_MAX_;
+            cost_max = COST_MIN_;
+
+            for (int i { 0 }; i < trajs.size(); i++)
+            {
+                // Get the cost of the trajectory
+                double cost { trajs[i].cost_ };
+
+                // Discard the trajectory if the cost is negative
+                if (cost < 0.0)
+                    continue;
+
+                // Update the minimum cost
+                if (cost < cost_min)
+                    cost_min = cost;
+
+                // Update the maximum cost
+                if (cost > cost_max)
+                    cost_max = cost;
+            }
+        }
 
         // Display the costs of the trajectories
         for (int i { 0 }; i < trajs.size(); i++)
@@ -332,9 +405,6 @@ namespace dwa_ext_local_planner {
             // Create a copy of the image to display
             cv::Mat overlay = image_to_display.clone();
 
-            // Set the maximum and minimum costs
-            double cost_max = 2.5, cost_min = 0.0;
-
             // Compute the green and red values to display the cost
             double green = 255/(cost_min - cost_max)*trajs[i].cost_
                            + 255*cost_max/(cost_max - cost_min);
@@ -353,6 +423,9 @@ namespace dwa_ext_local_planner {
                             0,
                             image_to_display);
         }
+        // Resize the image to display
+        cv::resize(image_to_display, image_to_display, cv::Size(1280, 720));
+
         // Display the current image
 		cv::imshow("Preview", image_to_display);
     	cv::waitKey(1);

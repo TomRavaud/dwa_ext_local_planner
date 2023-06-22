@@ -30,6 +30,7 @@
 #include <torch/script.h>
 
 #include <chrono>
+#include <vector>
 
 #include <base_local_planner/simple_trajectory_generator.h>
 
@@ -119,13 +120,13 @@ namespace dwa_ext_local_planner {
             ros::Subscriber sub_image_;
 
             // Width of the robot
-            double L_ { 0.67 };
+            double L_;
 
             // Image width and height
-            const double IMAGE_W_ { 1280 }, IMAGE_H_ { 720 };
+            double IMAGE_W_, IMAGE_H_;
 
             // Set the tilt angle of the camera
-            float alpha_ = -0.197;
+            float alpha_;
 
             // Define homogeneous transformation matrices
             cv::Mat_<double> robot_to_cam_translation_,
@@ -144,21 +145,13 @@ namespace dwa_ext_local_planner {
 
             // Define a transform to normalize the image
             torch::data::transforms::Normalize<> normalize_transform_ =
-                torch::data::transforms::Normalize<>({0.3426, 0.3569, 0.2914},
-                                                     {0.1363, 0.1248, 0.1302});
+                torch::data::transforms::Normalize<>({0.4710, 0.5030, 0.4580},
+                                                     {0.1965, 0.1859, 0.1955});
+                // torch::data::transforms::Normalize<>({0.3426, 0.3569, 0.2914},
+                //                                      {0.1363, 0.1248, 0.1302});
 
             // Set the bins midpoints
-            at::Tensor bins_midpoints_ = torch::tensor({{0.43156512},
-                                                        {0.98983318},
-                                                        {1.19973744},
-                                                        {1.35943443},
-                                                        {1.51740755},
-                                                        {1.67225206},
-                                                        {1.80821536},
-                                                        {1.94262708},
-                                                        {2.12798895},
-                                                        {2.6080252}},
-                                                        torch::kFloat);
+            at::Tensor bins_midpoints_;
 
             // Define vectors to store angular velocities and traversal
             // cost values
@@ -166,13 +159,17 @@ namespace dwa_ext_local_planner {
             std::vector<double> cost_values_;
 
             // Distance the robot travels within a patch
-            const double PATCH_DISTANCE_ { 0.5 };  // [m]
+            double PATCH_DISTANCE_;  // [m]
 
             // Ratio between the width and the height of a rectangle
-            const double RECTANGLE_RATIO_ { 3 };
+            double RECTANGLE_RATIO_;
 
             // Maximum number of rectangles to be detected in an image
-            const int NB_RECTANGLES_MAX_ { 3 };
+            int NB_RECTANGLES_MAX_;
+
+            // Choose whether to display the absolute cost color or not
+            bool DISPLAY_ABSOLUTE_COST_;
+            double COST_MAX_, COST_MIN_;
     };
 }
 

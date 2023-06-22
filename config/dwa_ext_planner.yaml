@@ -55,6 +55,70 @@ DWAExtPlannerROS:
 
 
   Traversability:
-    # image_topic: "zed_node/rgb/image_rect_color"
-    image_topic: "camera1/image_raw"
-    model_definition_file: "/home/tom/Traversability-Tom/catkin_ws/src/dwa_ext_local_planner/models/resnet18_velocity/resnet18_velocity.pt"
+    # Image topic to subscribe to
+    image_topic: "zed_node/rgb/image_rect_color"
+    # image_topic: "camera1/image_raw"
+
+    # Odometry topic to subscribe to
+    odom_topic: "odometry/filtered/local"
+
+    # File containing the model definition
+    model_definition_file: "/home/tom/Traversability-Tom/catkin_ws/src/dwa_ext_local_planner/models/multimodal/multimodal.pt"
+    # model_definition_file: "/home/tom/Traversability-Tom/catkin_ws/src/dwa_ext_local_planner/models/resnet18_velocity/resnet18_velocity.pt"
+
+    # Internal calibration matrix
+    K: [1067, 0, 943, 0, 1067, 521, 0, 0, 1]
+
+    # Robot to camera translation
+    robot_to_cam_translation: [0.084, 0.060, 0.774]
+
+    # Camera tilt angle
+    alpha: -0.197
+
+    # Width of the robot
+    L: 0.67
+
+    # Width and height of the image
+    W: 1920
+    H: 1080
+    
+    # Midpoints of the bins used to discretize the traversal costs
+    bins_midpoints: [0.82386684,
+                     2.0020273,
+                     2.6616611,
+                     3.2462296,
+                     3.8208783,
+                     4.5466967,
+                     5.869693,
+                     8.807003,
+                     13.026296,
+                     15.951326]
+    # bins_midpoints: [0.43156512,
+    #                  0.98983318,
+    #                  1.19973744,
+    #                  1.35943443,
+    #                  1.51740755,
+    #                  1.67225206,
+    #                  1.80821536,
+    #                  1.94262708,
+    #                  2.12798895,
+    #                  2.6080252]
+
+    # Distance the robot travels within a patch
+    patch_distance: 0.5
+
+    # Ratio between the width and the height of a rectangle
+    rectangle_ratio: 3
+
+    # Maximum number of rectangles to be detected in an image
+    nb_rectangles_max: 3
+
+    # Whether to display the trajectories or not
+    display_trajectories: false
+
+    # Whether to display absolute or relative cost colors 
+    display_absolute_cost: true
+
+    # Maximum and minimum cost values encountered in the training set
+    cost_max: 16
+    cost_min: 0

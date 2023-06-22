@@ -14,6 +14,11 @@ namespace dwa_ext_local_planner
 		// servers' names
 		ros::NodeHandle private_nh("~/" + name);
 
+		// Load parameter from the parameter server
+		private_nh.getParam(
+			"/move_base/DWAExtPlannerROS/Traversability/display_trajectories",
+			DISPLAY_TRAJECTORIES_);
+
 		// Define a string variable to store the name of the controller
 		// frequency parameter
 		std::string controller_frequency_param_name;
@@ -26,8 +31,14 @@ namespace dwa_ext_local_planner
 
 		ROS_INFO("Sim period is set to %.2f", sim_period_);
 
+		// Load the odometry topic name from the parameter server
+      	std::string odom_topic;
+		private_nh.getParam(
+			"/move_base/DWAExtPlannerROS/Traversability/odom_topic",
+			odom_topic);
+
 		// Allow to read the odometry topic
-		odom_helper_.setOdomTopic(odom_topic_);
+		odom_helper_.setOdomTopic(odom_topic);
 		
 		// Initialize the oscillation flags
 		oscillation_costs_.resetOscillationFlags();
@@ -74,7 +85,7 @@ namespace dwa_ext_local_planner
 
 		// Set the parameters of the traversability trajectory generator
 		generator_traversability_.setParameters(
-			7,
+			4,
 			0.05,
 			config.angular_sim_granularity,
 			config.use_dwa,
@@ -102,8 +113,8 @@ namespace dwa_ext_local_planner
 		// Set the parameters of the trajectory generator
       	limits_traversability_.max_vel_trans = 1.0;
       	limits_traversability_.min_vel_trans = 1.0;
-      	limits_traversability_.max_vel_x = 0.3;
-      	limits_traversability_.min_vel_x = 0.3;
+      	limits_traversability_.max_vel_x = 0.1;
+      	limits_traversability_.min_vel_x = 1.0;
       	limits_traversability_.max_vel_y = 0.0;
       	limits_traversability_.min_vel_y = 0.0;
       	limits_traversability_.max_vel_theta = 0.25;
@@ -191,7 +202,7 @@ namespace dwa_ext_local_planner
 
 		// Set a smaller number of trajectories on which to predict the
 		// traversability cost
-		Eigen::Vector3f vsamples_traversability { 1, 1, 6 };
+		Eigen::Vector3f vsamples_traversability { 1, 1, 3 };
 
 		// Initialize the traversability trajectory generator given the current
 		// state of the robot
@@ -202,24 +213,33 @@ namespace dwa_ext_local_planner
 											 vsamples_traversability,
 											 false);
 
-		// Predict the cost of the rectangles
-		// std::vector<base_local_planner::Trajectory> all_explored_traversability;
-		// traversability_costs_.predictRectangles(generator_traversability_,
-		// 										&all_explored_traversability);
-		traversability_costs_.predictRectangles(generator_traversability_,
-												NULL);
+		if (DISPLAY_TRAJECTORIES_)
+		{
+			// Predict the cost of the rectangles
+			std::vector<base_local_planner::Trajectory> all_explored_traversability;
+			traversability_costs_.predictRectangles(generator_traversability_,
+												&all_explored_traversability);
 
-		// Find best trajectory by sampling and scoring the samples
-    	// std::vector<base_local_planner::Trajectory> all_explored;
-    	// scored_sampling_planner_.findBestTrajectory(result_traj_,
-		// 											&all_explored);
-    	scored_sampling_planner_.findBestTrajectory(result_traj_, NULL);
+			// Find best trajectory by sampling and scoring the samples
+    		// std::vector<base_local_planner::Trajectory> all_explored;
+    		// scored_sampling_planner_.findBestTrajectory(result_traj_,
+			// 											&all_explored);
+    		scored_sampling_planner_.findBestTrajectory(result_traj_, NULL);
 
-		// ROS_INFO("Number of trajectories sampled: %d",
-		// 		 static_cast<int>(all_explored.size()));
+			// ROS_INFO("Number of trajectories sampled: %d",
+			// 		 static_cast<int>(all_explored.size()));
 
-		// traversability_costs_.displayTrajectoriesAndCosts(
-		// 	all_explored_traversability);
+			traversability_costs_.displayTrajectoriesAndCosts(
+				all_explored_traversability);	
+		}
+		else
+		{
+			// Predict the cost of the rectangles
+			traversability_costs_.predictRectangles(generator_traversability_,
+													NULL);
+			// Find best trajectory by sampling and scoring the samples
+    		scored_sampling_planner_.findBestTrajectory(result_traj_, NULL);
+		}
 
 		// Debrief stateful scoring functions
     	oscillation_costs_.updateOscillationFlags(
@@ -238,9 +258,12 @@ namespace dwa_ext_local_planner
 		}
 
 		// Fill the velocity command message
-		cmd_vel.linear.x = result_traj_.xv_;
-		cmd_vel.linear.y = result_traj_.yv_;
-		cmd_vel.angular.z = result_traj_.thetav_;
+		cmd_vel.linear.x = 0.0;
+		cmd_vel.linear.y = 0.0;
+		cmd_vel.angular.z = 0.0;
+		// cmd_vel.linear.x = result_traj_.xv_;
+		// cmd_vel.linear.y = result_traj_.yv_;
+		// cmd_vel.angular.z = result_traj_.thetav_;
 
 		// Get the current time
 		auto time_stop { std::chrono::high_resolution_clock::now() };

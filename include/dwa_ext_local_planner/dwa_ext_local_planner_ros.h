@@ -126,7 +126,6 @@ namespace dwa_ext_local_planner{
 
       // Define variables to help us to read the odometry topic
       base_local_planner::OdometryHelperRos odom_helper_;
-      std::string odom_topic_ { "odometry/filtered" };
 
       // Define a variable to store the current pose of the robot
       geometry_msgs::PoseStamped current_pose_;

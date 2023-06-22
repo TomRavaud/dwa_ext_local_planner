@@ -177,7 +177,6 @@ namespace dwa_ext_local_planner{
 
       // Define variables to help us to read the odometry topic
       base_local_planner::OdometryHelperRos odom_helper_;
-      std::string odom_topic_ { "odometry/filtered" };
 
       double sim_period_;
 
@@ -192,6 +191,9 @@ namespace dwa_ext_local_planner{
       base_local_planner::LocalPlannerUtil *planner_util_;
 
       ros::Time begin;
+
+      // Whether or not to display the trajectories
+      bool DISPLAY_TRAJECTORIES_;
   };
 };
 

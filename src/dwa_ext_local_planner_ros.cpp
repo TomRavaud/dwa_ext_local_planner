@@ -87,9 +87,15 @@ namespace dwa_ext_local_planner
 			local_plan_pub_ = private_nh.advertise<nav_msgs::Path>(
 				"local_plan",
 				1);
+			
+			// Load the odometry topic name from the parameter server
+      		std::string odom_topic;
+			private_nh.getParam(
+				"/move_base/DWAExtPlannerROS/Traversability/odom_topic",
+				odom_topic);
 
 			// Allow to read the odometry topic
-			odom_helper_.setOdomTopic(odom_topic_);
+			odom_helper_.setOdomTopic(odom_topic);
 
 			// Set initialized flag
 			initialized_ = true;
