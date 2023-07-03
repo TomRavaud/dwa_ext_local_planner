@@ -69,7 +69,7 @@ class Multimodal(nn.Module):
         
         x = self.resnet18.fc(x)
         
-        # x = F.relu(x)
+        x = F.relu(x)
         
         x = self.fc(x)
         

@@ -103,7 +103,9 @@ namespace dwa_ext_local_planner {
             void callbackImage(const sensor_msgs::ImageConstPtr& image);
             
             /**
-             * @brief Interpolate the traversal cost values
+             * @brief Interpolate the traversal cost values on the angular
+             * velocity (can be used when only when the robot's linear velocity
+             * is fixed)
              * 
              * @param vth The angular velocity of the trajectory
              * to assign a cost
@@ -112,7 +114,17 @@ namespace dwa_ext_local_planner {
              * @param cost_values The vector of the computed traversal costs
              * @return double 
              */
-            double costInterpolation(double vth);
+            double costInterpolationAngularVel(double vth);
+
+            /**
+             * @brief Interpolate the traversal cost of a new trajectory
+             * given a set of trajectories on which the cost has been computed
+             * 
+             * @param x The x coordinate of the trajectory's endpoint
+             * @param y The y coordinate of the trajectory's endpoint
+             * @return double 
+             */
+            double costInterpolation(double x, double y);
 
             // To convert ROS Image type into a CvImage
     	    cv_bridge::CvImagePtr cv_ptr_;
@@ -144,7 +156,9 @@ namespace dwa_ext_local_planner {
             // NN model
             torch::jit::script::Module model_;
 
-            // Define a transform to normalize the image
+            // Define a transform to normalize the image (the first 3 values
+            // are the mean and the last 3 are the standard deviation of the
+            // dataset ; they were pre-computed on the training set)
             torch::data::transforms::Normalize<> normalize_transform_ =
                 torch::data::transforms::Normalize<>({0.4710, 0.5030, 0.4580},
                                                      {0.1965, 0.1859, 0.1955});
@@ -158,6 +172,10 @@ namespace dwa_ext_local_planner {
             // cost values
             std::vector<double> vth_values_;
             std::vector<double> cost_values_;
+
+            // Define vectors to store the coordinates of the
+            // trajectories' endpoints
+            std::vector<double> x_values_, y_values_;
 
             // Distance the robot travels within a patch
             double PATCH_DISTANCE_;  // [m]
@@ -176,6 +194,10 @@ namespace dwa_ext_local_planner {
             // velocity
             std::string INTERPOLATION_METHOD_;
             double VTH_THR_;
+
+            // Radius of the circle in which to look for the neighboring
+            // trajectories
+            double R_;
     };
 }
 

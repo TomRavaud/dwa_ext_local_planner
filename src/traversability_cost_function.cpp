@@ -27,22 +27,29 @@ namespace dwa_ext_local_planner {
                     IMAGE_W_);
         nh.getParam("/move_base/DWAExtPlannerROS/Traversability/H",
                     IMAGE_H_);
-        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/patch_distance",
-                    PATCH_DISTANCE_);
-        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/rectangle_ratio",
-                    RECTANGLE_RATIO_);
-        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/nb_rectangles_max",
-                    NB_RECTANGLES_MAX_);
-        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/display_absolute_cost",
-                    DISPLAY_ABSOLUTE_COST_);
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/patch_distance",
+            PATCH_DISTANCE_);
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/rectangle_ratio",
+            RECTANGLE_RATIO_);
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/nb_rectangles_max",
+            NB_RECTANGLES_MAX_);
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/display_absolute_cost",
+            DISPLAY_ABSOLUTE_COST_);
         nh.getParam("/move_base/DWAExtPlannerROS/Traversability/cost_max",
                     COST_MAX_);
         nh.getParam("/move_base/DWAExtPlannerROS/Traversability/cost_min",
                     COST_MIN_);
-        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/interpolation_method",
-                    INTERPOLATION_METHOD_);
+        nh.getParam(
+            "/move_base/DWAExtPlannerROS/Traversability/interpolation_method",
+            INTERPOLATION_METHOD_);
         nh.getParam("/move_base/DWAExtPlannerROS/Traversability/vth_thr",
                     VTH_THR_);
+        nh.getParam("/move_base/DWAExtPlannerROS/Traversability/R",
+                    R_);
 
         // Read the name of the camera image topic
         std::string image_topic {};
@@ -127,7 +134,7 @@ namespace dwa_ext_local_planner {
         return true;
     }
 
-    inline double TraversabilityCostFunction::costInterpolation(double vth)
+    inline double TraversabilityCostFunction::costInterpolationAngularVel(double vth)
     {
         // Get the number of angular velocities
         int nb_values = vth_values_.size();
@@ -194,11 +201,56 @@ namespace dwa_ext_local_planner {
         return cost;
     }
 
+    inline double TraversabilityCostFunction::costInterpolation(
+        double x, double y)
+    {
+        // Initialize the cost and the sum of coefficients
+        double cost { 0.0 };
+        double coeff { 0.0 };
+
+        // Go through the precomputed trajectories
+        for (int i { 0 }; i < cost_values_.size(); i++)
+        {
+            // Compute the distance between the endpoint of the precomputed
+            // trajectory and the endpoint of the current trajectory
+            double distance2 = pow(x - x_values_.at(i), 2) + pow(y - y_values_.at(i), 2);
+            
+            // Use only trajectories that are close enough to compute the cost
+            // of the current trajectory
+            if (distance2 < R_*R_)
+            {
+                // Add the cost of the precomputed trajectory, weighted by the
+                // inverse of the distance
+                cost += (1/distance2)*cost_values_[i];
+
+                // Add the inverse of the distance to the sum of coefficients
+                // to normalize the cost
+                coeff += 1/distance2;
+            }
+        }
+
+        // If the current trajectory is too far from the precomputed
+        // trajectories, then return -1 (invalid trajectory) or if there is no
+        // precomputed trajectory, then return -1
+        if (cost == 0.0)
+            return -1;
+
+        return cost/coeff;
+    }
+
     inline double TraversabilityCostFunction::scoreTrajectory(
         base_local_planner::Trajectory &traj)
-    {   
+    {
+        // Compute the cost of the trajectory (works for a fixed linear
+        // velocity only)
+        // double cost { costInterpolationAngularVel(traj.thetav_) };
+
+        // Get the endpoint of the trajectory
+        double x, y, theta;
+        traj.getEndpoint(x, y, theta);
+
         // Compute the cost of the trajectory
-        double cost { costInterpolation(traj.thetav_) };
+        double cost { costInterpolation(x, y) };
 
         return cost;
     }
@@ -215,8 +267,8 @@ namespace dwa_ext_local_planner {
         if (DISPLAY_ABSOLUTE_COST_)
         {
             // Get the minimum and maximum costs on the training set
-            cost_min = COST_MIN_;
-            cost_max = COST_MAX_;
+            cost_min = log(COST_MIN_ + 1);
+            cost_max = log(COST_MAX_ + 1);
         }
         else
         {   
@@ -315,11 +367,24 @@ namespace dwa_ext_local_planner {
                     current_pair_image[1].y > 0 &&
                     current_pair_image[1].y < IMAGE_H_)
                 {
+                    // if (j == trajs[i].getPointsSize() - 1)
+                    // {
+                    //     // Draw circles at the 2D points on the image
+                    //     cv::circle(image_to_display,
+                    //                (current_pair_image[0] + current_pair_image[1])/2,
+                    //                R_,
+                    //                cv::Scalar(0, 0, 255),
+                    //                -1);
+                    // }
                     // Draw circles at the 2D points on the image
+                    cv::circle(image_to_display,
+                               (current_pair_image[0] + current_pair_image[1])/2,
+                               5,
+                               cv::Scalar(0, 0, 255),
+                               -1);
                     // cv::circle(image_to_display,
                     //            current_pair_image[0],
-                    //            5,
-                    //            cv::Scalar(0, 0, 255),
+                    //            5, cv::Scalar(0, 0, 255),
                     //            -1);
                     // cv::circle(image_to_display,
                     //            current_pair_image[1],
@@ -442,8 +507,17 @@ namespace dwa_ext_local_planner {
             // Create a copy of the image to display
             cv::Mat overlay = image_to_display.clone();
 
+            double cost;
+
+            // If the absolute cost is displayed, take the log of the cost
+            // to have a better visualization
+            if (DISPLAY_ABSOLUTE_COST_)
+                cost = log(trajs[i].cost_ + 1);
+            else
+                cost = trajs[i].cost_;
+
             // Compute the green and red values to display the cost
-            double green = 255/(cost_min - cost_max)*trajs[i].cost_
+            double green = 255/(cost_min - cost_max)*cost
                            + 255*cost_max/(cost_max - cost_min);
             double red = 255 - green;
 
@@ -496,8 +570,11 @@ namespace dwa_ext_local_planner {
         // Define a vector to store the number of rectangles per trajectory
         std::vector<int> nb_rectangles_vector;
 
+        // Clear the vectors
         cost_values_.clear();
         vth_values_.clear();
+        x_values_.clear();
+        y_values_.clear();
 
         // Go through all the trajectories
 		while (generator.hasMoreTrajectories())
@@ -516,11 +593,7 @@ namespace dwa_ext_local_planner {
             // Append the trajectory to the vector of all explored trajectories
             // (for visualization purposes only)
             if (all_explored != NULL)
-                all_explored->push_back(traj);
-
-            // Append the angular velocity of the current trajectory to the
-            // vector of angular velocities
-            vth_values_.push_back(traj.thetav_);
+                all_explored->push_back(traj); 
             
             nb_trajectories++;
 
@@ -735,56 +808,104 @@ namespace dwa_ext_local_planner {
                          "rectangles to the recurrent network.",
                          NB_RECTANGLES_MAX_);
 
+            if (nb_rectangles > 0)
+            {
+                // Append the angular velocity of the current trajectory to the
+                // vector of angular velocities
+                vth_values_.push_back(traj.thetav_);
+
+                // Get the coordinates of the endpoint of the trajectory and
+                // append them to the vectors of coordinates
+                double x, y, vth;
+                traj.getEndpoint(x, y, vth);
+                x_values_.push_back(x);
+                y_values_.push_back(y);
+            }
+
             nb_rectangles_vector.push_back(nb_rectangles);
 		}
-        // Concatenate and normalize the tensors and send them to the GPU
-        inputs.push_back(
-            normalize_transform_(at::cat(rectangles_vector)).to(device_));
-        
-        // Concatenate, add a dimension and send the velocities tensor
-        // to the GPU
-        inputs.push_back(at::cat(velocities_vector).to(at::kFloat)
-            .unsqueeze_(1).to(device_));
 
-        // Compute the expected costs over the bins
-        at::Tensor expected_costs_rectangles;
-        expected_costs_rectangles = at::mm(
-            at::softmax(model_.forward(inputs).toTensor(), /*dim*/1),
-            bins_midpoints_);
-
-        // Initialize the index of the rectangle
-        int index_rectangle { 0 };
-
-        for (int i { 0 }; i < nb_trajectories; i++)
+        if (rectangles_vector.size() == 0)
         {
-            // Get the number of rectangles in the current trajectory
-            int nb_rectangles = nb_rectangles_vector[i];
-
-            double cost;
-            
-            // If we cannot assess the traversability of a trajectory,
-            // discard it by setting its cost to -1
-            if (nb_rectangles == 0)
-                cost = -1;
-
-            else
-                // Get the maximum cost
-                cost = at::max(
-                    expected_costs_rectangles.narrow(
-                        0,
-                        index_rectangle,
-                        nb_rectangles)).item<double>();
-
-            cost_values_.push_back(cost);
+            ROS_ERROR("No rectangles to process. All the trajectories are "
+                      "invalid. Be sure the sim time is long enough for the "
+                      "trajectories to appear on the image.");
 
             // Set the cost of each trajectory
             // (for visualization purposes)
             if (all_explored != NULL)
-                // Need to dereference the pointer to modify its data
-                (*all_explored)[i].cost_ = cost;
+            {
+                // Go through the trajectories
+                for (int i { 0 }; i < nb_trajectories; i++)
+                    // Need to dereference the pointer to modify its data
+                    (*all_explored)[i].cost_ = -1;
+            }
+        }
 
-            // Increment the index of the rectangle
-            index_rectangle += nb_rectangles;
+        // If there is at least one valid trajectory
+        else
+        {
+            // Concatenate and normalize the tensors and send them to the GPU
+            inputs.push_back(
+                normalize_transform_(at::cat(rectangles_vector)).to(device_));
+
+            // Concatenate, add a dimension and send the velocities tensor
+            // to the GPU
+            inputs.push_back(at::cat(velocities_vector).to(at::kFloat)
+                .unsqueeze_(1).to(device_));
+
+            // Compute the expected costs over the bins
+            at::Tensor expected_costs_rectangles;
+            expected_costs_rectangles = at::mm(
+                at::softmax(model_.forward(inputs).toTensor(), /*dim*/1),
+                bins_midpoints_);
+
+            // Initialize the index of the rectangle
+            int index_rectangle { 0 };
+
+            for (int i { 0 }; i < nb_trajectories; i++)
+            {
+                // Get the number of rectangles in the current trajectory
+                int nb_rectangles = nb_rectangles_vector[i];
+
+                double cost;
+
+                // If we cannot assess the traversability of a trajectory,
+                // discard it by setting its cost to -1
+                if (nb_rectangles == 0)
+                    cost = -1;
+
+                else
+                {
+                    // Merge the costs of all the rectangles of the current
+                    // trajectory into a single cost
+                    // Get the mean cost
+                    cost = at::mean(
+                        expected_costs_rectangles.narrow(
+                            0,
+                            index_rectangle,
+                            nb_rectangles)).item<double>();
+
+                    // // Get the max cost
+                    // cost = at::max(
+                    //     expected_costs_rectangles.narrow(
+                    //         0,
+                    //         index_rectangle,
+                    //         nb_rectangles)).item<double>();
+
+                    // Append the cost to the vector of costs
+                    cost_values_.push_back(cost);
+                }
+
+                // Set the cost of each trajectory
+                // (for visualization purposes)
+                if (all_explored != NULL)
+                    // Need to dereference the pointer to modify its data
+                    (*all_explored)[i].cost_ = cost;
+
+                // Increment the index of the rectangle
+                index_rectangle += nb_rectangles;
+            }
         }
     }
 }

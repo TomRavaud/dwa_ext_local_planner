@@ -85,8 +85,8 @@ namespace dwa_ext_local_planner
 
 		// Set the parameters of the traversability trajectory generator
 		generator_traversability_.setParameters(
-			4,
-			0.05,
+			config.sim_time,
+			config.sim_granularity_t,
 			config.angular_sim_granularity,
 			config.use_dwa,
 			sim_period_);
@@ -111,20 +111,20 @@ namespace dwa_ext_local_planner
       	limits_.theta_stopped_vel = config.theta_stopped_vel;
 
 		// Set the parameters of the trajectory generator
-      	limits_traversability_.max_vel_trans = 1.0;
-      	limits_traversability_.min_vel_trans = 1.0;
-      	limits_traversability_.max_vel_x = 0.1;
-      	limits_traversability_.min_vel_x = 1.0;
-      	limits_traversability_.max_vel_y = 0.0;
-      	limits_traversability_.min_vel_y = 0.0;
-      	limits_traversability_.max_vel_theta = 0.25;
-      	limits_traversability_.min_vel_theta = 0.0;
-      	limits_traversability_.acc_lim_x = 3.0;
-      	limits_traversability_.acc_lim_y = 100.0;
-      	limits_traversability_.acc_lim_theta = 6.0;
-      	limits_traversability_.acc_lim_trans = 3.0;
-      	limits_traversability_.xy_goal_tolerance = 0.5;
-      	limits_traversability_.yaw_goal_tolerance = 0.1;
+      	limits_traversability_.max_vel_trans = config.max_vel_trans;
+      	limits_traversability_.min_vel_trans = config.min_vel_trans;
+      	limits_traversability_.max_vel_x = config.max_vel_x;
+      	limits_traversability_.min_vel_x = config.min_vel_x;
+      	limits_traversability_.max_vel_y = config.max_vel_y;
+      	limits_traversability_.min_vel_y = config.min_vel_y;
+      	limits_traversability_.max_vel_theta = config.max_vel_theta;
+      	limits_traversability_.min_vel_theta = config.min_vel_theta;
+      	limits_traversability_.acc_lim_x = config.acc_lim_x;
+      	limits_traversability_.acc_lim_y = config.acc_lim_y;
+      	limits_traversability_.acc_lim_theta = config.acc_lim_theta;
+      	limits_traversability_.acc_lim_trans = config.acc_lim_x;
+      	limits_traversability_.xy_goal_tolerance = config.xy_goal_tolerance;
+      	limits_traversability_.yaw_goal_tolerance = config.yaw_goal_tolerance;
       	limits_traversability_.prune_plan = config.prune_plan;
       	limits_traversability_.trans_stopped_vel = config.trans_stopped_vel;
       	limits_traversability_.theta_stopped_vel = config.theta_stopped_vel;
@@ -135,6 +135,16 @@ namespace dwa_ext_local_planner
 		oscillation_costs_.setOscillationResetDist(
 			config.oscillation_reset_dist,
 			config.oscillation_reset_angle);
+
+		// Get the resolution of the costmap and set the path distance bias
+		double resolution = planner_util_->getCostmap()->getResolution();
+    	path_distance_bias_ = resolution * config.path_distance_bias;
+
+		// Set the weight of the different cost functions
+		path_costs_.setScale(path_distance_bias_);
+
+		traversability_bias_ = config.traversability_bias;
+		traversability_costs_.setScale(traversability_bias_);
 
 		// Store the new configuration
 		config_ = config;
@@ -162,7 +172,7 @@ namespace dwa_ext_local_planner
 	{
 		// Get the current time
 		auto time_start { std::chrono::high_resolution_clock::now() };	
-		
+
 		// Number of trajectories to sample
 		Eigen::Vector3f vsamples(config_.vx_samples,
 								 config_.vy_samples,
@@ -202,7 +212,9 @@ namespace dwa_ext_local_planner
 
 		// Set a smaller number of trajectories on which to predict the
 		// traversability cost
-		Eigen::Vector3f vsamples_traversability { 1, 1, 3 };
+		Eigen::Vector3f vsamples_traversability(config_.vx_samples_t,
+												config_.vy_samples_t,
+												config_.vth_samples_t);
 
 		// Initialize the traversability trajectory generator given the current
 		// state of the robot
@@ -216,9 +228,11 @@ namespace dwa_ext_local_planner
 		if (DISPLAY_TRAJECTORIES_)
 		{
 			// Predict the cost of the rectangles
-			std::vector<base_local_planner::Trajectory> all_explored_traversability;
-			traversability_costs_.predictRectangles(generator_traversability_,
-												&all_explored_traversability);
+			std::vector<base_local_planner::Trajectory>
+				all_explored_traversability;
+			traversability_costs_.predictRectangles(
+				generator_traversability_,
+				&all_explored_traversability);
 
 			// Find best trajectory by sampling and scoring the samples
     		// std::vector<base_local_planner::Trajectory> all_explored;
@@ -258,12 +272,9 @@ namespace dwa_ext_local_planner
 		}
 
 		// Fill the velocity command message
-		cmd_vel.linear.x = 0.0;
-		cmd_vel.linear.y = 0.0;
-		cmd_vel.angular.z = 0.0;
-		// cmd_vel.linear.x = result_traj_.xv_;
-		// cmd_vel.linear.y = result_traj_.yv_;
-		// cmd_vel.angular.z = result_traj_.thetav_;
+		cmd_vel.linear.x = result_traj_.xv_;
+		cmd_vel.linear.y = result_traj_.yv_;
+		cmd_vel.angular.z = result_traj_.thetav_;
 
 		// Get the current time
 		auto time_stop { std::chrono::high_resolution_clock::now() };

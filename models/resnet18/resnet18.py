@@ -24,30 +24,3 @@ model.eval()
 
 torchscript_model = torch.jit.trace(model, images)
 torchscript_model.save("models/resnet18/resnet18.pt")
-
-# batch = []
-
-# with torch.no_grad():
-#     for i in range(8, 9):
-#         image = cv2.imread("rectangle"+str(i)+".png")
-
-#         image_resized = cv2.resize(image, (210, 70))
-
-#         transform = transforms.Compose([
-#             transforms.ToTensor(),
-#             transforms.Normalize(
-#                 mean=[0.3426, 0.3569, 0.2914],
-#                 std=[0.1363, 0.1248, 0.1302]
-#             ),
-#         ])
-
-#         image_transformed = transform(image)
-
-#         image_transformed = torch.unsqueeze(image_transformed, dim=0)
-
-#         batch.append(image_transformed)
-
-# batch = torch.cat(batch, 0)
-
-# output = nn.Softmax(dim=1)(model(torch.tensor(batch)))
-# print(output)

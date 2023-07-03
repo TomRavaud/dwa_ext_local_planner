@@ -160,10 +160,16 @@ namespace dwa_ext_local_planner{
       // Define the traversability cost function
       dwa_ext_local_planner::TraversabilityCostFunction traversability_costs_;
 
+      // Define the traversability cost weight
+      double traversability_bias_;
+
       // Define the oscillation cost function
       base_local_planner::OscillationCostFunction oscillation_costs_;
       // Define the global path preference cost function
       base_local_planner::MapGridCostFunction path_costs_;
+
+      // Define the global path preference cost weight
+      double path_distance_bias_;
 
       // Define the scored sampling planner that will be used to associate
       // costs to trajectories

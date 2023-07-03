@@ -164,55 +164,63 @@ $(function() {
 <div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;      <span class="comment">// Define the traversability cost function</span></div>
 <div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;      <a class="code" href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a> traversability_costs_;</div>
 <div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;      <span class="comment">// Define the oscillation cost function</span></div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;      base_local_planner::OscillationCostFunction oscillation_costs_;</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;      <span class="comment">// Define the global path preference cost function</span></div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;      base_local_planner::MapGridCostFunction path_costs_;</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;      <span class="comment">// Define the scored sampling planner that will be used to associate</span></div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;      <span class="comment">// costs to trajectories</span></div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;      base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160; </div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;      <span class="comment">// Define a variable to store the best trajectory</span></div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;      base_local_planner::Trajectory result_traj_;</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160; </div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;      <span class="comment">// Define a variable to store the current pose of the robot</span></div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;      <span class="comment">// geometry_msgs::PoseStamped current_pose_;</span></div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;      <span class="comment">// Define the traversability cost weight</span></div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;      <span class="keywordtype">double</span> traversability_bias_;</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160; </div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;      <span class="comment">// Define the oscillation cost function</span></div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;      base_local_planner::OscillationCostFunction oscillation_costs_;</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;      <span class="comment">// Define the global path preference cost function</span></div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;      base_local_planner::MapGridCostFunction path_costs_;</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160; </div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;      <span class="comment">// Define the global path preference cost weight</span></div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;      <span class="keywordtype">double</span> path_distance_bias_;</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160; </div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;      <span class="comment">// Define the scored sampling planner that will be used to associate</span></div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;      <span class="comment">// costs to trajectories</span></div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;      base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;</div>
 <div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;      <span class="comment">// Define variables to help us to read the odometry topic</span></div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;      base_local_planner::OdometryHelperRos odom_helper_;</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;      std::string odom_topic_ { <span class="stringliteral">&quot;odometry/filtered&quot;</span> };</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;      <span class="keywordtype">double</span> sim_period_;</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;      <span class="comment">// Define a variable to store the best trajectory</span></div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;      base_local_planner::Trajectory result_traj_;</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;      <span class="comment">// Define a variable to store the current pose of the robot</span></div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;      <span class="comment">// geometry_msgs::PoseStamped current_pose_;</span></div>
 <div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160; </div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;      <span class="comment">// Define a variable to store the local planner limits</span></div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;          base_local_planner::LocalPlannerLimits limits_;</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;      </div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;      <span class="comment">// Define a variable to store the local planner limits for traversability</span></div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;      <span class="comment">// analysis</span></div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;      base_local_planner::LocalPlannerLimits limits_traversability_;</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;      </div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;      <span class="comment">// Create a local planner util object</span></div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;      base_local_planner::LocalPlannerUtil *planner_util_;</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160; </div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;      ros::Time begin;</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;  };</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;};</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160; </div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;      <span class="comment">// Define variables to help us to read the odometry topic</span></div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;      base_local_planner::OdometryHelperRos odom_helper_;</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160; </div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;      <span class="keywordtype">double</span> sim_period_;</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160; </div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;      <span class="comment">// Define a variable to store the local planner limits</span></div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;          base_local_planner::LocalPlannerLimits limits_;</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;      </div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;      <span class="comment">// Define a variable to store the local planner limits for traversability</span></div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;      <span class="comment">// analysis</span></div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;      base_local_planner::LocalPlannerLimits limits_traversability_;</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;      </div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;      <span class="comment">// Create a local planner util object</span></div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;      base_local_planner::LocalPlannerUtil *planner_util_;</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;      ros::Time begin;</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160; </div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;      <span class="comment">// Whether or not to display the trajectories</span></div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;      <span class="keywordtype">bool</span> DISPLAY_TRAJECTORIES_;</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;  };</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;};</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; </div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a></div><div class="ttdoc">Uses camera images to extract the robot footprint and assign a cost to trajectories depending on the ...</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.h:44</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_aedae97d2cde0e47051be3f3adb7f6602"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#aedae97d2cde0e47051be3f3adb7f6602">dwa_ext_local_planner::DWAExtPlanner::checkTrajectory</a></div><div class="ttdeci">bool checkTrajectory(Eigen::Vector3f pos, Eigen::Vector3f vel, Eigen::Vector3f vel_samples)</div><div class="ttdoc">Check if a trajectory is valid (ie has a positive cost)</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:256</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1TraversabilityCostFunction_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1TraversabilityCostFunction.html">dwa_ext_local_planner::TraversabilityCostFunction</a></div><div class="ttdoc">Uses camera images to extract the robot footprint and assign a cost to trajectories depending on the ...</div><div class="ttdef"><b>Definition:</b> traversability_cost_function.h:46</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_aedae97d2cde0e47051be3f3adb7f6602"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#aedae97d2cde0e47051be3f3adb7f6602">dwa_ext_local_planner::DWAExtPlanner::checkTrajectory</a></div><div class="ttdeci">bool checkTrajectory(Eigen::Vector3f pos, Eigen::Vector3f vel, Eigen::Vector3f vel_samples)</div><div class="ttdoc">Check if a trajectory is valid (ie has a positive cost)</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:290</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a4df1f2d714b3c2d35bc550b936c935e5"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a4df1f2d714b3c2d35bc550b936c935e5">dwa_ext_local_planner::DWAExtPlanner::DWAExtPlanner</a></div><div class="ttdeci">DWAExtPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util)</div><div class="ttdoc">Construct a new DWAExtPlanner object.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:6</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a5a8c82451f646a5b7a1915d09fb148a8"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a5a8c82451f646a5b7a1915d09fb148a8">dwa_ext_local_planner::DWAExtPlanner::getSimPeriod</a></div><div class="ttdeci">double getSimPeriod()</div><div class="ttdoc">Get the simulation period.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.h:128</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a526259fdbd6539a946c17d5aba706fd7"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a526259fdbd6539a946c17d5aba706fd7">dwa_ext_local_planner::DWAExtPlanner::initialize</a></div><div class="ttdeci">void initialize(std::string name, tf2_ros::Buffer *tf, costmap_2d::Costmap2DROS *costmap_ros)</div><div class="ttdoc">Initializes the trajectory planner.</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_ac21cf08ac51e7d4a5663dc66db554a3c"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#ac21cf08ac51e7d4a5663dc66db554a3c">dwa_ext_local_planner::DWAExtPlanner::setPlan</a></div><div class="ttdeci">bool setPlan(const std::vector&lt; geometry_msgs::PoseStamped &gt; &amp;orig_global_plan)</div><div class="ttdoc">Set the plan that the controller is following.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:134</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_ac8725d0efb516d82dfa1ebc8c62e96d3"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#ac8725d0efb516d82dfa1ebc8c62e96d3">dwa_ext_local_planner::DWAExtPlanner::computeVelocityCommands</a></div><div class="ttdeci">base_local_planner::Trajectory computeVelocityCommands(geometry_msgs::PoseStamped current_pose, geometry_msgs::Twist &amp;cmd_vel)</div><div class="ttdoc">Given the current position, orientation, and velocity of the robot, compute velocity commands to send...</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:148</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_ac21cf08ac51e7d4a5663dc66db554a3c"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#ac21cf08ac51e7d4a5663dc66db554a3c">dwa_ext_local_planner::DWAExtPlanner::setPlan</a></div><div class="ttdeci">bool setPlan(const std::vector&lt; geometry_msgs::PoseStamped &gt; &amp;orig_global_plan)</div><div class="ttdoc">Set the plan that the controller is following.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:155</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_ac8725d0efb516d82dfa1ebc8c62e96d3"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#ac8725d0efb516d82dfa1ebc8c62e96d3">dwa_ext_local_planner::DWAExtPlanner::computeVelocityCommands</a></div><div class="ttdeci">base_local_planner::Trajectory computeVelocityCommands(geometry_msgs::PoseStamped current_pose, geometry_msgs::Twist &amp;cmd_vel)</div><div class="ttdoc">Given the current position, orientation, and velocity of the robot, compute velocity commands to send...</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:169</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_aea745aa78f999d9075cd841fe7775a5f"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#aea745aa78f999d9075cd841fe7775a5f">dwa_ext_local_planner::DWAExtPlanner::getAccLimits</a></div><div class="ttdeci">Eigen::Vector3f getAccLimits()</div><div class="ttdoc">Get the acceleration limites.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.h:135</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a23125877e2647e6fece27438c64d751a"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a23125877e2647e6fece27438c64d751a">dwa_ext_local_planner::DWAExtPlanner::isGoalReached</a></div><div class="ttdeci">bool isGoalReached()</div><div class="ttdoc">Check if the goal pose has been achieved.</div></div>
 <div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html">dwa_ext_local_planner::DWAExtPlanner</a></div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.h:58</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a19224ca67b17148c239f1caf19a73d02"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a19224ca67b17148c239f1caf19a73d02">dwa_ext_local_planner::DWAExtPlanner::~DWAExtPlanner</a></div><div class="ttdeci">~DWAExtPlanner()</div><div class="ttdoc">Destroy the DWAExtPlanner object.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:63</div></div>
-<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a815e383a6c04e83218fac2d8e7fd5b23"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a815e383a6c04e83218fac2d8e7fd5b23">dwa_ext_local_planner::DWAExtPlanner::reconfigure</a></div><div class="ttdeci">void reconfigure(DWAExtPlannerConfig &amp;config)</div><div class="ttdoc">Reconfigures the trajectory planner.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:65</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a19224ca67b17148c239f1caf19a73d02"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a19224ca67b17148c239f1caf19a73d02">dwa_ext_local_planner::DWAExtPlanner::~DWAExtPlanner</a></div><div class="ttdeci">~DWAExtPlanner()</div><div class="ttdoc">Destroy the DWAExtPlanner object.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:74</div></div>
+<div class="ttc" id="aclassdwa__ext__local__planner_1_1DWAExtPlanner_html_a815e383a6c04e83218fac2d8e7fd5b23"><div class="ttname"><a href="classdwa__ext__local__planner_1_1DWAExtPlanner.html#a815e383a6c04e83218fac2d8e7fd5b23">dwa_ext_local_planner::DWAExtPlanner::reconfigure</a></div><div class="ttdeci">void reconfigure(DWAExtPlannerConfig &amp;config)</div><div class="ttdoc">Reconfigures the trajectory planner.</div><div class="ttdef"><b>Definition:</b> dwa_ext_local_planner.cpp:76</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">
